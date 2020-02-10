@@ -1,0 +1,124 @@
+Device used to run this program:  cuda
+Loading the network...
+Network Loaded
+Activation before optimizing : -1.904306173324585
+Probablity before optimizing : 0.9858613014221191 and label 1
+Dreaming...
+Activation after optimizing : 57.83796310424805
+Probablity after optimizing : 1.0 and label 0
+Label predicted : 0 Activation predicted : 31.438098907470703 Probability predicted : 1.0 
+dreams/dream_net_2_1_0_100_0.1.png saved
+Activation before optimizing : -1.904306173324585
+Probablity before optimizing : 0.9858613014221191 and label 1
+Dreaming...
+Activation after optimizing : 61.86973190307617
+Probablity after optimizing : 1.0 and label 0
+Label predicted : 0 Activation predicted : 32.026527404785156 Probability predicted : 1.0 
+dreams/dream_net_2_1_0_200_0.1.png saved
+Activation before optimizing : -1.904306173324585
+Probablity before optimizing : 0.9858613014221191 and label 1
+Dreaming...
+Activation after optimizing : 64.9126968383789
+Probablity after optimizing : 1.0 and label 0
+Label predicted : 0 Activation predicted : 34.501556396484375 Probability predicted : 1.0 
+dreams/dream_net_2_1_0_400_0.1.png saved
+Activation before optimizing : -1.904306173324585
+Probablity before optimizing : 0.9858613014221191 and label 1
+Dreaming...
+Activation after optimizing : 64.96400451660156
+Probablity after optimizing : 1.0 and label 0
+Label predicted : 0 Activation predicted : 36.49073028564453 Probability predicted : 1.0 
+dreams/dream_net_2_1_0_800_0.1.png saved
+Device used to run this program:  cuda
+Loading the network...
+Network Loaded
+Activation before optimizing : 0.6013891696929932
+Probablity before optimizing : 0.7398437261581421 and label 0
+Dreaming...
+Activation after optimizing : 59.206668853759766
+Probablity after optimizing : 1.0 and label 0
+Label predicted : 0 Activation predicted : 65.8207015991211 Probability predicted : 1.0 
+dreams/dream_net_2_50_0_100_0.1.png saved
+Activation before optimizing : 0.6013891696929932
+Probablity before optimizing : 0.7398437261581421 and label 0
+Dreaming...
+Activation after optimizing : 59.72727584838867
+Probablity after optimizing : 1.0 and label 0
+Label predicted : 0 Activation predicted : 64.74633026123047 Probability predicted : 1.0 
+dreams/dream_net_2_50_0_200_0.1.png saved
+Activation before optimizing : 0.6013891696929932
+Probablity before optimizing : 0.7398437261581421 and label 0
+Dreaming...
+Activation after optimizing : 59.8453483581543
+Probablity after optimizing : 1.0 and label 0
+Label predicted : 0 Activation predicted : 63.413063049316406 Probability predicted : 1.0 
+dreams/dream_net_2_50_0_400_0.1.png saved
+Activation before optimizing : 0.6013891696929932
+Probablity before optimizing : 0.7398437261581421 and label 0
+Dreaming...
+Activation after optimizing : 59.92372512817383
+Probablity after optimizing : 1.0 and label 0
+Label predicted : 0 Activation predicted : 62.2910041809082 Probability predicted : 1.0 
+dreams/dream_net_2_50_0_800_0.1.png saved
+Device used to run this program:  cuda
+Loading the network...
+Network Loaded
+Activation before optimizing : -89.73219299316406
+Probablity before optimizing : 0.7493939399719238 and label 32
+Dreaming...
+Activation after optimizing : 45.16178894042969
+Probablity after optimizing : 1.0 and label 0
+Label predicted : 0 Activation predicted : 43.674861907958984 Probability predicted : 1.0 
+dreams/dream_net_50_1_0_100_0.1.png saved
+Activation before optimizing : -89.73219299316406
+Probablity before optimizing : 0.7493939399719238 and label 32
+Dreaming...
+Activation after optimizing : 48.22084045410156
+Probablity after optimizing : 1.0 and label 0
+Label predicted : 0 Activation predicted : 46.57156753540039 Probability predicted : 1.0 
+dreams/dream_net_50_1_0_200_0.1.png saved
+Activation before optimizing : -89.73219299316406
+Probablity before optimizing : 0.7493939399719238 and label 32
+Dreaming...
+Activation after optimizing : 47.345252990722656
+Probablity after optimizing : 1.0 and label 0
+Label predicted : 0 Activation predicted : 47.31990051269531 Probability predicted : 1.0 
+dreams/dream_net_50_1_0_400_0.1.png saved
+Activation before optimizing : -89.73219299316406
+Probablity before optimizing : 0.7493939399719238 and label 32
+Dreaming...
+Activation after optimizing : 47.727230072021484
+Probablity after optimizing : 1.0 and label 0
+Label predicted : 0 Activation predicted : 48.77433395385742 Probability predicted : 1.0 
+dreams/dream_net_50_1_0_800_0.1.png saved
+Device used to run this program:  cuda
+Loading the network...
+Network Loaded
+Activation before optimizing : -10.69156551361084
+Probablity before optimizing : 0.8227452039718628 and label 35
+Dreaming...
+Activation after optimizing : 69.0006332397461
+Probablity after optimizing : 1.0 and label 0
+Label predicted : 0 Activation predicted : 65.83123016357422 Probability predicted : 1.0 
+dreams/dream_net_50_50_0_100_0.1.png saved
+Activation before optimizing : -10.69156551361084
+Probablity before optimizing : 0.8227452039718628 and label 35
+Dreaming...
+Activation after optimizing : 65.3088150024414
+Probablity after optimizing : 1.0 and label 0
+Label predicted : 0 Activation predicted : 63.1675910949707 Probability predicted : 1.0 
+dreams/dream_net_50_50_0_200_0.1.png saved
+Activation before optimizing : -10.69156551361084
+Probablity before optimizing : 0.8227452039718628 and label 35
+Dreaming...
+Activation after optimizing : 70.16594696044922
+Probablity after optimizing : 1.0 and label 0
+Label predicted : 0 Activation predicted : 70.50932312011719 Probability predicted : 1.0 
+dreams/dream_net_50_50_0_400_0.1.png saved
+Activation before optimizing : -10.69156551361084
+Probablity before optimizing : 0.8227452039718628 and label 35
+Dreaming...
+Activation after optimizing : 67.59992980957031
+Probablity after optimizing : 1.0 and label 0
+Label predicted : 0 Activation predicted : 69.74087524414062 Probability predicted : 1.0 
+dreams/dream_net_50_50_0_800_0.1.png saved
