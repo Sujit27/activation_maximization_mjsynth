@@ -18,10 +18,10 @@ import lm_util
 
 # Composite Transform scaling the image as the original dataset was used.
 mjsynth_gray_scale = transforms.Compose([
-    transforms.Resize(32, 104),
+    transforms.Resize((32, 256)),
     transforms.Grayscale(),
     transforms.ToTensor(),
-    transforms.Normalize((0.5,), (0.5,)),
+    transforms.Normalize((0.47,), (0.14,)),
 ])
 
 # Composite Transform scaling the image as the original dataset was used.

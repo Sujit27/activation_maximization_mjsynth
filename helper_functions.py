@@ -70,7 +70,11 @@ def extract_name(filename):
 #    
 #    return class_names,class_ids,ds_new
 #
-def subset_dataset(ds,num_labels,num_samples_per_label):
+def subset_dataset(ds,num_labels=None,num_samples_per_label=None):
+    # set num_labels and num_samples_per_label to very high values if no arguements are passed
+    if num_labels is None: num_labels = 1000000
+    if num_samples_per_label is None: num_samples_per_label = 100000
+
     labels_dict = {}
     for i in range(len(ds)):
         class_id = ds.class_ids[i]

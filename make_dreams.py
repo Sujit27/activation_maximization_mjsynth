@@ -18,13 +18,13 @@ def label_softmaxed(net,image,transform):
 
 def main():
     transform = dg.mjsynth.mjsynth_gray_pad
-    model_dir = 'models_gray_pad/'
+    model_dir = 'models/'
+    output_path = "dreams/"
     saved_networks = ["net_2_1","net_2_50","net_50_1","net_50_50"]
     
     nItrs = [100,200,400,800]
     lrs = [0.1] #[0.001,0.005,0.01,0.05,0.1,0.5]
     label = 0
-    output_path = "dreams/"
     for saved_network in saved_networks:
         filename = os.path.basename(saved_network)
         num_labels = int(filename.split("_")[1])

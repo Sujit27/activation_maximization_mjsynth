@@ -138,7 +138,7 @@ def main():
     num_labels_list = [2,5,10,50,100]
     num_samples_per_labels = [1,5,10,20,50]
     num_epochs = 1000
-    transform = dg.mjsynth.mjsynth_gray_pad
+    transform = dg.mjsynth.mjsynth_gray_scale
     for num_labels in num_labels_list:
         for num_samples_per_label in num_samples_per_labels:
             print("#####")
