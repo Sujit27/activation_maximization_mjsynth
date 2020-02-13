@@ -1,15 +1,15 @@
 from dict_net import *
 from helper_functions import *
-   
+import csv   
 
 
 
-def train_model(transform,num_labels=None,batch_size=16,weight_decay=0.001,num_epochs=1):
+def train_model(transform,num_labels=None,lr=0.005,batch_size=16,weight_decay=0.001,num_epochs=1):
     
     # CUDA for PyTorch
     use_cuda = torch.cuda.is_available()
     device = torch.device("cuda:0" if use_cuda else "cpu")
-    print("Device to be used {}".format(device))
+    #print("Device to be used {}".format(device))
 
 
     # create dataset
@@ -18,7 +18,7 @@ def train_model(transform,num_labels=None,batch_size=16,weight_decay=0.001,num_e
 
     # subset the dataset with desired number of samples per label
     labels_indices_dict, ds = subset_dataset(ds,num_labels)
-    print("Number of labels: {}  Batch size: {}  Weight Decay factor: {}".format(num_labels,batch_size,weight_decay))
+    #print("Number of labels: {}  Batch size: {}  Weight Decay factor: {}".format(num_labels,batch_size,weight_decay))
     
     # create a list of labels
     labels_list = list(labels_indices_dict)
@@ -40,9 +40,6 @@ def train_model(transform,num_labels=None,batch_size=16,weight_decay=0.001,num_e
     train_sampler = SubsetRandomSampler(train_indices)
     valid_sampler = SubsetRandomSampler(val_indices)
 
-    batch_size = 16
-    lr = 0.005
-    weight_decay = 0.001
     # create a trainloader for the data subset
     trainloader = torch.utils.data.DataLoader(ds, batch_size=batch_size,sampler=train_sampler) 
     validationloader = torch.utils.data.DataLoader(ds, batch_size=batch_size,sampler=valid_sampler)
@@ -55,7 +52,8 @@ def train_model(transform,num_labels=None,batch_size=16,weight_decay=0.001,num_e
     
     disp_batch_num_training = 2
     disp_batch_num_validation = 1
-    accuracy_num = 20 # variables that say how many last accuracy scores to look at for stopping training
+    score_training_list = []
+    score_validation_list = []
     for epoch in range(num_epochs):
         net.train()
         #running_loss = 0.0
@@ -131,23 +129,31 @@ def train_model(transform,num_labels=None,batch_size=16,weight_decay=0.001,num_e
 
         training_acc_avg = sum(training_acc_score_list)/len(training_acc_score_list)
         validation_acc_avg = sum(validation_acc_score_list)/len(validation_acc_score_list)
-        print("Epoch : {},Training accuracy : {},Validation accuracy : {} ".format(epoch,training_acc_avg,validation_acc_avg))
+        #print("{},{},{} ".format(epoch,training_acc_avg,validation_acc_avg))
+        score_training_list.append(training_acc_avg)
+        score_validation_list.append(validation_acc_avg)
              
-    torch.save(net.state_dict(),'net_'+str(num_labels) + '_' + str(batch_size) + '_' + str(weight_decay)+'.pth')
-    print("MODEL SAVED")
-    return labels_indices_dict,labels_list
+    #torch.save(net.state_dict(),'net_'+str(num_labels) + '_' + str(batch_size) + '_' + str(weight_decay)+'.pth')
+    #print("MODEL SAVED")
+    return labels_list,score_training_list,score_validation_list
 
 def main():
-    num_labels = 5
-    weight_decays = [0.00001,0.001,0.01,0.1,1]
-    batch_sizes = [8,16,32,64]
+    num_labels = 50
+    lrs = [0.001]#[0.001,0.005,0.01]
+    weight_decays = [0.001]#[0.001,0.01,0.1,1]
+    batch_sizes = [16]#[16,32,64]
     num_epochs = 500
     transform = dg.mjsynth.mjsynth_gray_pad
     for batch_size in batch_sizes:
         for weight_decay in weight_decays:
-            print("#####")
-            labels_indices_dict,labels_list = train_model(transform,num_labels,batch_size,weight_decay,num_epochs)
-            print("Labels Indices Dictionary : {}".format(labels_indices_dict))
-            print("Label List : {}".format(labels_list))
+            for lr in lrs:
+                #print("#####")
+                labels_list,score_training_list,score_validation_list = train_model(transform,num_labels,lr,batch_size,weight_decay,num_epochs)
+                file_name = "result"+"_l"+str(lr)+"_b"+str(batch_size)+"_w"+str(weight_decay)+".csv"
+                with open(file_name,'w') as f:
+                    writer = csv.writer(f)
+                    writer.writerows(zip(score_training_list,score_validation_list))
+
+                
 if __name__ == "__main__":
     main()
