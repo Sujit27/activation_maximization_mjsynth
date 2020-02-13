@@ -4,7 +4,7 @@ from helper_functions import *
 
 
 
-def train_model(transform,num_labels=None,num_samples_per_label=None,num_epochs=1):
+def train_model(transform,num_labels=None,batch_size=16,weight_decay=0.001,num_epochs=1):
     
     # CUDA for PyTorch
     use_cuda = torch.cuda.is_available()
@@ -18,7 +18,7 @@ def train_model(transform,num_labels=None,num_samples_per_label=None,num_epochs=
 
     # subset the dataset with desired number of samples per label
     labels_indices_dict, ds = subset_dataset(ds,num_labels)
-    print("Number of labels: {} \n  Number of samples per label: {}".format(num_labels,num_samples_per_label))
+    print("Number of labels: {}  Batch size: {}  Weight Decay factor: {}".format(num_labels,batch_size,weight_decay))
     
     # create a list of labels
     labels_list = list(labels_indices_dict)
@@ -53,14 +53,15 @@ def train_model(transform,num_labels=None,num_samples_per_label=None,num_epochs=
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(net.parameters(), lr=lr, weight_decay=weight_decay)
     
-    disp_batch_num_training = 5
+    disp_batch_num_training = 2
     disp_batch_num_validation = 1
-    validation_acc_score_list = []
     accuracy_num = 20 # variables that say how many last accuracy scores to look at for stopping training
     for epoch in range(num_epochs):
         net.train()
-        running_loss = 0.0
-        validation_loss = 0.0
+        #running_loss = 0.0
+        #validation_loss = 0.0
+        training_acc_score_list = []
+        validation_acc_score_list = []
         for i, data in enumerate(trainloader, 0):
             images, targets = data
             # return position of the targets in labels_list as the new target
@@ -76,12 +77,12 @@ def train_model(transform,num_labels=None,num_samples_per_label=None,num_epochs=
             loss.backward()
             optimizer.step()
             
-            running_loss += loss.item()
+#            running_loss += loss.item()
             if i % disp_batch_num_training == disp_batch_num_training-1:    # print every 50 mini-batches
-                print('[%d, %5d] training loss: %.3f' %
-                      (epoch + 1, i + 1, running_loss / disp_batch_num_training))
-                running_loss = 0.0
-            
+#                print('[%d, %5d] training loss: %.3f' %
+#                      (epoch + 1, i + 1, running_loss / disp_batch_num_training))
+#                running_loss = 0.0
+#            
                 net.eval()
                 with torch.no_grad():
                     images, targets = data
@@ -93,9 +94,10 @@ def train_model(transform,num_labels=None,num_samples_per_label=None,num_epochs=
                     outputs = net(images)
                     
                     preds = one_hot_to_argmax(outputs)
-                    training_acc_score = skm.accuracy_score(targets.cpu().detach().numpy(),preds.cpu().detach().numpy())                
+                    training_acc_score = skm.accuracy_score(targets.cpu().detach().numpy(),preds.cpu().detach().numpy())
+                    training_acc_score_list.append(training_acc_score)
 
-                    print("training accuracy_score : {}".format(training_acc_score))
+#                    print("training accuracy_score : {}".format(training_acc_score))
                 net.train()
         # break
 #        if len(acc_score_list) > accuracy_num:
@@ -118,28 +120,33 @@ def train_model(transform,num_labels=None,num_samples_per_label=None,num_epochs=
                 outputs = net(images)
                 loss = criterion(outputs, targets)
                 
-                validation_loss += loss.item()
+                #validation_loss += loss.item()
                 preds = one_hot_to_argmax(outputs)
                 validation_acc_score = skm.accuracy_score(targets.cpu().detach().numpy(),preds.cpu().detach().numpy())                
                 if i % disp_batch_num_validation == disp_batch_num_validation-1:    # print every 50 mini-batches
-                    print('[%d, %5d] validation loss: %.3f  validation accuracy score: %.3f' %
-                          (epoch + 1, j + 1, validation_loss / disp_batch_num_validation, validation_acc_score))
-                    validation_loss = 0.0
+                    #                    print('[%d, %5d] validation loss: %.3f  validation accuracy score: %.3f' %
+                    #                          (epoch + 1, j + 1, validation_loss / disp_batch_num_validation, validation_acc_score))
+                    #                    validation_loss = 0.0
                     validation_acc_score_list.append(validation_acc_score)
+
+        training_acc_avg = sum(training_acc_score_list)/len(training_acc_score_list)
+        validation_acc_avg = sum(validation_acc_score_list)/len(validation_acc_score_list)
+        print("Epoch : {},Training accuracy : {},Validation accuracy : {} ".format(epoch,training_acc_avg,validation_acc_avg))
              
-    torch.save(net.state_dict(),'net_'+str(num_labels) + '_' + str(num_samples_per_label)+'.pth')
+    torch.save(net.state_dict(),'net_'+str(num_labels) + '_' + str(batch_size) + '_' + str(weight_decay)+'.pth')
     print("MODEL SAVED")
     return labels_indices_dict,labels_list
 
 def main():
-    num_labels_list = [5]
-    num_samples_per_labels = [None]
+    num_labels = 5
+    weight_decays = [0.00001,0.001,0.01,0.1,1]
+    batch_sizes = [8,16,32,64]
     num_epochs = 500
     transform = dg.mjsynth.mjsynth_gray_pad
-    for num_labels in num_labels_list:
-        for num_samples_per_label in num_samples_per_labels:
+    for batch_size in batch_sizes:
+        for weight_decay in weight_decays:
             print("#####")
-            labels_indices_dict,labels_list = train_model(transform,num_labels,num_samples_per_label,num_epochs)
+            labels_indices_dict,labels_list = train_model(transform,num_labels,batch_size,weight_decay,num_epochs)
             print("Labels Indices Dictionary : {}".format(labels_indices_dict))
             print("Label List : {}".format(labels_list))
 if __name__ == "__main__":
