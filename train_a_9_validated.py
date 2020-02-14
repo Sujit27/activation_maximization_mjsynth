@@ -129,30 +129,32 @@ def train_model(transform,num_labels=None,lr=0.005,batch_size=16,weight_decay=0.
 
         training_acc_avg = sum(training_acc_score_list)/len(training_acc_score_list)
         validation_acc_avg = sum(validation_acc_score_list)/len(validation_acc_score_list)
-        #print("{},{},{} ".format(epoch,training_acc_avg,validation_acc_avg))
+        print("{},{},{} ".format(epoch,training_acc_avg,validation_acc_avg))
         score_training_list.append(training_acc_avg)
         score_validation_list.append(validation_acc_avg)
              
-    #torch.save(net.state_dict(),'net_'+str(num_labels) + '_' + str(batch_size) + '_' + str(weight_decay)+'.pth')
-    #print("MODEL SAVED")
+    torch.save(net.state_dict(),'net_jitter_noise_'+str(num_labels) + '_' + str(batch_size) + '_' + str(weight_decay)+'.pth')
+    #print("MODEL SAVED"tter)
     return labels_list,score_training_list,score_validation_list
 
 def main():
     num_labels = 50
-    lrs = [0.001]#[0.001,0.005,0.01]
-    weight_decays = [0.001]#[0.001,0.01,0.1,1]
-    batch_sizes = [16]#[16,32,64]
+    lrs = [0.001]
+    weight_decays = [0.0,0.001]#[0.001,0.01]
+    batch_sizes = [32] #[16,32,64]
     num_epochs = 500
-    transform = dg.mjsynth.mjsynth_gray_pad
+    transform = dg.mjsynth.mjsynth_gray_pad_jitter_noise
     for batch_size in batch_sizes:
         for weight_decay in weight_decays:
             for lr in lrs:
                 #print("#####")
                 labels_list,score_training_list,score_validation_list = train_model(transform,num_labels,lr,batch_size,weight_decay,num_epochs)
-                file_name = "result"+"_l"+str(lr)+"_b"+str(batch_size)+"_w"+str(weight_decay)+".csv"
+                file_name = "result_jitter_noise_"+"_l"+str(lr)+"_b"+str(batch_size)+"_w"+str(weight_decay)+".csv"
                 with open(file_name,'w') as f:
                     writer = csv.writer(f)
                     writer.writerows(zip(score_training_list,score_validation_list))
+
+                print("Result saved : {}".format(file_name))
 
                 
 if __name__ == "__main__":

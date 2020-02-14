@@ -55,7 +55,7 @@ def train_model(transform,num_labels=1,num_samples_per_label=1,num_epochs=100):
     net = DictNet(num_labels)
     net.to(device)
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(net.parameters(), lr=0.005)
+    optimizer = optim.Adam(net.parameters(), lr=0.001)
     
     disp_batch_num = 1
     acc_score_list = []
@@ -135,9 +135,9 @@ def train_model(transform,num_labels=1,num_samples_per_label=1,num_epochs=100):
     return labels_indices_dict,labels_list
 
 def main():
-    num_labels_list = [2,5,10,50,100]
-    num_samples_per_labels = [1,5,10,20,50]
-    num_epochs = 1000
+    num_labels_list = [50]
+    num_samples_per_labels = [1]
+    num_epochs = 500
     transform = dg.mjsynth.mjsynth_gray_scale
     for num_labels in num_labels_list:
         for num_samples_per_label in num_samples_per_labels:
