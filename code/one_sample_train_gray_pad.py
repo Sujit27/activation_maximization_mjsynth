@@ -1,3 +1,5 @@
+import sys
+sys.path.append("../library/")
 from dict_net import *
 from helper_functions import *
    
@@ -130,15 +132,16 @@ def train_model(transform,num_labels=1,num_samples_per_label=1,num_epochs=100):
 #                          (epoch + 1, j + 1, validation_loss / 50, acc_score))
 #                    validation_loss = 0.0
 #             
-    torch.save(net.state_dict(),'net_'+str(num_labels) + '_' + str(num_samples_per_label)+'.pth')
+    torch.save(net.state_dict(),'net_one_sample_gray_pad'+str(num_labels) + '_' + str(num_samples_per_label)+'.pth')
+
     print("MODEL SAVED")
     return labels_indices_dict,labels_list
 
 def main():
-    num_labels_list = [50]
+    num_labels_list = [20]
     num_samples_per_labels = [1]
     num_epochs = 500
-    transform = dg.mjsynth.mjsynth_gray_scale
+    transform = dg.mjsynth.mjsynth_gray_pad
     for num_labels in num_labels_list:
         for num_samples_per_label in num_samples_per_labels:
             print("#####")

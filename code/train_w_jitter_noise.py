@@ -1,10 +1,12 @@
+import sys
+sys.path.append("../library/")
 from dict_net import *
 from helper_functions import *
 import csv   
 
 
 
-def train_model(transform,num_labels=None,lr=0.005,batch_size=16,weight_decay=0.001,num_epochs=1):
+def train_model(output_path,transform,num_labels=None,lr=0.005,batch_size=16,weight_decay=0.001,num_epochs=1):
     
     # CUDA for PyTorch
     use_cuda = torch.cuda.is_available()
@@ -22,6 +24,8 @@ def train_model(transform,num_labels=None,lr=0.005,batch_size=16,weight_decay=0.
     
     # create a list of labels
     labels_list = list(labels_indices_dict)
+    if num_labels is None:
+        num_labels = len(labels_list)
 
     validation_split = 0.15
     dataset_size = len(ds)
@@ -132,29 +136,33 @@ def train_model(transform,num_labels=None,lr=0.005,batch_size=16,weight_decay=0.
         print("{},{},{} ".format(epoch,training_acc_avg,validation_acc_avg))
         score_training_list.append(training_acc_avg)
         score_validation_list.append(validation_acc_avg)
-             
-    torch.save(net.state_dict(),'net_jitter_noise_'+str(num_labels) + '_' + str(batch_size) + '_' + str(weight_decay)+'.pth')
+    
+    model_name = 'net_jitter_noise_'+str(num_labels) + '_' + str(batch_size) + '_' + str(weight_decay)+'.pth'
+    output_file = os.path.join(output_path,model_name)
+    torch.save(net.state_dict(),output_file)
     #print("MODEL SAVED"tter)
     return labels_list,score_training_list,score_validation_list
 
 def main():
-    num_labels = 50
+    output_path = "../"
+    num_labels = None
     lrs = [0.001]
-    weight_decays = [0.0,0.001]#[0.001,0.01]
+    weight_decays = [0.001]#[0.001,0.01]
     batch_sizes = [32] #[16,32,64]
-    num_epochs = 500
+    num_epochs = 100
     transform = dg.mjsynth.mjsynth_gray_pad_jitter_noise
     for batch_size in batch_sizes:
         for weight_decay in weight_decays:
             for lr in lrs:
                 #print("#####")
-                labels_list,score_training_list,score_validation_list = train_model(transform,num_labels,lr,batch_size,weight_decay,num_epochs)
-                file_name = "result_jitter_noise_"+"_l"+str(lr)+"_b"+str(batch_size)+"_w"+str(weight_decay)+".csv"
-                with open(file_name,'w') as f:
+                labels_list,score_training_list,score_validation_list = train_model(output_path,transform,lr = lr,batch_size=batch_size,weight_decay=weight_decay,num_epochs=num_epochs)
+                file_name = "result_jitter_noise"+"_l"+str(lr)+"_b"+str(batch_size)+"_w"+str(weight_decay)+".csv"
+                output_csv = os.path.join(output_path,file_name)
+                with open(output_csv,'w') as f:
                     writer = csv.writer(f)
                     writer.writerows(zip(score_training_list,score_validation_list))
 
-                print("Result saved : {}".format(file_name))
+                print("Result saved : {}".format(output_csv))
 
                 
 if __name__ == "__main__":

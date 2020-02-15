@@ -10,11 +10,12 @@ import numpy as np
 import torch.utils.data as data
 from PIL import Image
 from torchvision import transforms
-from .util import RandomPadAndNormalise, resumable_download, mkdir_p, extract
+from .util import RandomPadAndNormalise, resumable_download, mkdir_p, extract, AddGaussianNoise
 import shutil
 import PIL
 from types import MethodType
 import lm_util
+import random
 
 # Composite Transform scaling the image as the original dataset was used.
 mjsynth_gray_scale = transforms.Compose([
@@ -52,6 +53,17 @@ mjsynth_gray_pad = transforms.Compose([
     transforms.Grayscale(),
     transforms.ToTensor(),
     RandomPadAndNormalise((32, 256))
+])
+
+# Composite Transform padding the image with gaussian noise,standardize
+# with mean and std of the dataset, add colorjitter transform and gaussian noise
+# for data augmenatation
+mjsynth_gray_pad_jitter_noise = transforms.Compose([
+    transforms.ColorJitter(brightness=0.5,contrast=0.5,saturation=0.5,hue=0),
+    transforms.Grayscale(),
+    transforms.ToTensor(),
+    RandomPadAndNormalise((32, 256)),
+    AddGaussianNoise(0,random.uniform(0,0.5))
 ])
 
 # Composite Transform padding the image with gaussian noise and

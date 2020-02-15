@@ -6,13 +6,13 @@ from find_subset_indices_labels import *
 script_path = os.getcwd()
 sys.path.append(script_path)
 
-def create_a_9_dataset(root):
+def subset_dataset(root,lex_txt):
     #os.chdir(root)
     os.mkdir(os.path.join(root,'raw2'))
     #print('new directory created at {}'.format(root))
 
     ds = mj.MjSynthWS(root)
-    indices,_ = find_indices_labels(ds,os.path.join(script_path,"lex_a_len9.txt"))
+    indices,_ = find_indices_labels(ds,os.path.join(script_path,lex_txt))
     
     dst = os.path.join(root,'raw2')
     
@@ -31,12 +31,13 @@ def create_a_9_dataset(root):
 
 def main():
     #root = '/mnt/c/Users/User/Desktop/mjsynth'
-    if len(sys.argv) < 2:
-        print("Pass the location of the data as a parameter to the file. For example /var/tmp/")
+    if len(sys.argv) < 3:
+        print("Pass the location of the data as a parameter and txt file as command line parameters. For example python create_subset_dataset.py /var/tmp/ lex_###.txt")
         return 1
     else:
         root = sys.argv[1]
-        create_a_9_dataset(root)
+        lex_txt = sys.argv[2] # text file with one word per each line
+        subset_dataset(root,lex_txt)
 
 if __name__ == "__main__":
     main()

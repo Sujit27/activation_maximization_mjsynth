@@ -80,6 +80,17 @@ def save_image_float(img,fname,as_color=True,mkdir=True):
         if len(img.shape)==3:
             img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
     cv2.imwrite(fname,img)
+    
+class AddGaussianNoise(object):
+    def __init__(self, mean=0., std=1.):
+        self.std = std
+        self.mean = mean
+        
+    def __call__(self, tensor):
+        return tensor + torch.randn(tensor.size()) * self.std + self.mean
+    
+    def __repr__(self):
+        return self.__class__.__name__ + '(mean={0}, std={1})'.format(self.mean, self.std)
 
 
 class RandomPadAndNormalise(object):
@@ -114,8 +125,9 @@ class RandomPadAndNormalise(object):
 
     def __call__(self, tensor):
         channels, height, width = tensor.shape
-        mean = float(tensor.view(-1).mean())
-        std = float(tensor.view(-1).std())
+        
+        mean = 0.47 #float(tensor.view(-1).mean())
+        std = 0.14 #float(tensor.view(-1).std())
         # TODO: (anguelos) use mean and variance by channel.
         # mean=tensor.view([channels,height*width]).mean(dim=1)
         # std = tensor.view([channels, height * width]).std(dim=1)
