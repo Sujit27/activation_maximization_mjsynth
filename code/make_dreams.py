@@ -31,7 +31,7 @@ def main():
     
     nItrs = [400]
     lrs = [0.1] #[0.001,0.005,0.01,0.05,0.1,0.5]
-    label = 0
+    label = 2
     filename = os.path.basename(trained_model)
     net = DictNet(num_labels)
 

@@ -137,32 +137,37 @@ def train_model(output_path,transform,num_labels=None,lr=0.005,batch_size=16,wei
         score_training_list.append(training_acc_avg)
         score_validation_list.append(validation_acc_avg)
     
-    model_name = 'net_jitter_noise_'+str(num_labels) + '_' + str(batch_size) + '_' + str(weight_decay)+'.pth'
+    model_name = 'net_'+str(num_labels) + '_' + str(lr) +  '_' + str(batch_size) + '_' + str(weight_decay)+'.pth'
     output_file = os.path.join(output_path,model_name)
     torch.save(net.state_dict(),output_file)
     #print("MODEL SAVED"tter)
     return labels_list,score_training_list,score_validation_list
 
 def main():
-    output_path = "../"
-    num_labels = None
-    lrs = [0.001]
-    weight_decays = [0.001]#[0.001,0.01]
-    batch_sizes = [32] #[16,32,64]
-    num_epochs = 100
-    transform = dg.mjsynth.mjsynth_gray_pad_jitter_noise
+    output_path = "../models/"
+    num_labels = 100
+    lrs = [0.001]#[0.001,0.005,0.01]
+    weight_decays = [0.01,0.001]
+    batch_sizes = [64]
+    num_epochs = 200
+    transform = dg.mjsynth.mjsynth_gray_pad
     for batch_size in batch_sizes:
         for weight_decay in weight_decays:
             for lr in lrs:
                 #print("#####")
-                labels_list,score_training_list,score_validation_list = train_model(output_path,transform,lr = lr,batch_size=batch_size,weight_decay=weight_decay,num_epochs=num_epochs)
-                file_name = "result_jitter_noise"+"_l"+str(lr)+"_b"+str(batch_size)+"_w"+str(weight_decay)+".csv"
+                labels_list,score_training_list,score_validation_list = train_model(output_path,transform,num_labels=num_labels,lr = lr,batch_size=batch_size,weight_decay=weight_decay,num_epochs=num_epochs)
+                file_name = "result"+"_l"+str(lr)+"_b"+str(batch_size)+"_w"+str(weight_decay)+".csv"
                 output_csv = os.path.join(output_path,file_name)
                 with open(output_csv,'w') as f:
                     writer = csv.writer(f)
                     writer.writerows(zip(score_training_list,score_validation_list))
 
                 print("Result saved : {}".format(output_csv))
+
+    labels_file = os.path.join(output_path,"labels.txt")
+    with open(labels_file,'w') as f:
+        for item in labels_list:
+            f.write("%s\n" % item[1])
 
                 
 if __name__ == "__main__":
