@@ -19,7 +19,7 @@ import random
 
 # Composite Transform scaling the image as the original dataset was used.
 mjsynth_gray_scale = transforms.Compose([
-    transforms.Resize((32, 256)),
+    transforms.Resize((32, 128)),
     transforms.Grayscale(),
     transforms.ToTensor(),
     transforms.Normalize((0.47,), (0.14,)),

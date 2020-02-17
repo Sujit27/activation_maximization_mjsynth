@@ -69,3 +69,14 @@ class DictNet(nn.Module):
         out = self.final(out)
         #out = self.softmax(out)
         return out
+
+class DictNet2(DictNet):
+    def __init__(self, num_classes=772):
+        super().__init__()
+        self.fc1 = nn.Sequential(
+            nn.Linear(2*8*512, 4096),
+            nn.BatchNorm1d(4096),
+            nn.ReLU())
+       
+
+
