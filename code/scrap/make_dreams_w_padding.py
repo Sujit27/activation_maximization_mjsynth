@@ -31,12 +31,12 @@ def main():
     
     nItrs = [400]
     lrs = [0.1] #[0.001,0.005,0.01,0.05,0.1,0.5]
-    label = 0
+    label = 2
     filename = os.path.basename(trained_model)
-    net = DictNet2(num_labels)
+    net = DictNet(num_labels)
 
     net.load_state_dict(torch.load(trained_model));
-    dreamer = DeepDream(net,(1,32,128),(0.47,),(0.14,),use_gaussian_filter=True)
+    dreamer = DeepDream(net,(1,32,256),(0.47,),(0.14,),use_gaussian_filter=True)
 
     for nItr in nItrs:
         for lr in lrs:

@@ -49,7 +49,7 @@ def train_model(output_path,transform,num_labels=None,lr=0.005,batch_size=16,wei
     validationloader = torch.utils.data.DataLoader(ds, batch_size=batch_size,sampler=valid_sampler)
     #trainloader = torch.utils.data.DataLoader(ds,batch_size=batch_size,shuffle=True)
     # create network with number of output nodes same as number of distinct labels
-    net = DictNet(num_labels)
+    net = DictNet2(num_labels)
     net.to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(net.parameters(), lr=lr, weight_decay=weight_decay)
@@ -147,16 +147,16 @@ def main():
     output_path = "../models/"
     num_labels = 100
     lrs = [0.001]#[0.001,0.005,0.01]
-    weight_decays = [0.01,0.001]
+    weight_decays = [0.00]
     batch_sizes = [64]
-    num_epochs = 200
-    transform = dg.mjsynth.mjsynth_gray_pad
+    num_epochs = 100
+    transform = dg.mjsynth.mjsynth_gray_scale
     for batch_size in batch_sizes:
         for weight_decay in weight_decays:
             for lr in lrs:
                 #print("#####")
                 labels_list,score_training_list,score_validation_list = train_model(output_path,transform,num_labels=num_labels,lr = lr,batch_size=batch_size,weight_decay=weight_decay,num_epochs=num_epochs)
-                file_name = "result"+"_l"+str(lr)+"_b"+str(batch_size)+"_w"+str(weight_decay)+".csv"
+                file_name = "result_"+ str(num_labels) + "_l"+str(lr)+"_b"+str(batch_size)+"_w"+str(weight_decay)+".csv"
                 output_csv = os.path.join(output_path,file_name)
                 with open(output_csv,'w') as f:
                     writer = csv.writer(f)

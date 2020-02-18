@@ -1,3 +1,5 @@
+## creates subset of the mjsynth dataset according to the words in the .txt file provideda## see a sample txt file in this directory
+## usage: $python create_subset_dataset.py <mjsynth_data_loccation> <txt file> 
 import dagtasets.mjsynth as mj 
 import os
 import shutil

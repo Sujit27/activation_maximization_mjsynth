@@ -27,16 +27,20 @@ def main():
         return 1
     output_path = "../dreams/"
     trained_model = sys.argv[1]
-    num_labels = int(sys.argv[2])
+    label = int(sys.argv[2])
     
     nItrs = [400]
     lrs = [0.1] #[0.001,0.005,0.01,0.05,0.1,0.5]
-    label = 2
     filename = os.path.basename(trained_model)
-    net = DictNet(num_labels)
+    num_labels = int(filename.split('_')[1])
+    if label < num_labels:
+        net = DictNet2(num_labels)
+    else:
+        print("Label number provided exceeds number of neurons in the last layer. Exiting...")
+        return 1
 
     net.load_state_dict(torch.load(trained_model));
-    dreamer = DeepDream(net,(1,32,256),(0.47,),(0.14,),use_gaussian_filter=True)
+    dreamer = DeepDream(net,(1,32,128),(0.47,),(0.14,),use_gaussian_filter=True)
 
     for nItr in nItrs:
         for lr in lrs:

@@ -1,4 +1,5 @@
-## creates the mjsynth dataset at /var/tmp/ by downloading the tar file and extracting it
+## creates the mjsynth dataset the location provided.
+## usage: $python create_dataset.py $download_destination
 
 import dagtasets
 import os
