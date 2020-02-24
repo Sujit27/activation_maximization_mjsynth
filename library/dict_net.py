@@ -13,48 +13,48 @@ import re
 
 # Convolutional neural network 
 class DictNet(nn.Module):
-    def __init__(self, num_classes=772):
+    def __init__(self, num_classes=772, conv_capacity=16, fc_capacity=128):
         super().__init__()
         self.conv1 = nn.Sequential(
-            nn.Conv2d(1, 64, kernel_size=5, stride=1, padding=2),
-            nn.BatchNorm2d(64),
+            nn.Conv2d(1, conv_capacity*4 , kernel_size=5, stride=1, padding=2),
+            nn.BatchNorm2d(conv_capacity*4),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2))
         
         self.conv2 = nn.Sequential(
-            nn.Conv2d(64, 128, kernel_size=5, stride=1, padding=2),
-            nn.BatchNorm2d(128),
+            nn.Conv2d(conv_capacity*4, conv_capacity*8, kernel_size=5, stride=1, padding=2),
+            nn.BatchNorm2d(conv_capacity*8),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2))
         
         self.conv3 = nn.Sequential(
-            nn.Conv2d(128, 256, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(256),
+            nn.Conv2d(conv_capacity*8, conv_capacity*16, kernel_size=3, stride=1, padding=1),
+            nn.BatchNorm2d(conv_capacity*16),
             nn.ReLU())
             
         self.conv4 = nn.Sequential(
-            nn.Conv2d(256, 512, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(512),
+            nn.Conv2d(conv_capacity*16, conv_capacity*32, kernel_size=3, stride=1, padding=1),
+            nn.BatchNorm2d(conv_capacity*32),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2))
             
         self.conv5 = nn.Sequential(
-            nn.Conv2d(512, 512, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(512),
+            nn.Conv2d(conv_capacity*32, conv_capacity*32, kernel_size=3, stride=1, padding=1),
+            nn.BatchNorm2d(conv_capacity*32),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2))
 
         self.fc1 = nn.Sequential(
-            nn.Linear(2*16*512, 4096),
-            nn.BatchNorm1d(4096),
+            nn.Linear(2*16*conv_capacity*32, fc_capacity*32),
+            nn.BatchNorm1d(fc_capacity*32),
             nn.ReLU())
     
         self.fc2 = nn.Sequential(
-            nn.Linear(4096, 4096),
-            nn.BatchNorm1d(4096),
+            nn.Linear(fc_capacity*32, fc_capacity*32),
+            nn.BatchNorm1d(fc_capacity*32),
             nn.ReLU())
         
-        self.final = nn.Linear(4096, num_classes)
+        self.final = nn.Linear(fc_capacity*32, num_classes)
         #self.softmax = nn.Softmax(dim=1)
         
     def forward(self, x):
@@ -71,11 +71,11 @@ class DictNet(nn.Module):
         return out
 
 class DictNet2(DictNet):
-    def __init__(self, num_classes=772):
+    def __init__(self, num_classes=772, conv_capacity=16, fc_capacity=128):
         super().__init__()
         self.fc1 = nn.Sequential(
-            nn.Linear(2*8*512, 4096),
-            nn.BatchNorm1d(4096),
+            nn.Linear(2*8*conv_capacity*32, fc_capacity*32),
+            nn.BatchNorm1d(fc_capacity*32),
             nn.ReLU())
        
 
