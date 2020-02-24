@@ -21,13 +21,17 @@ def label_softmaxed(net,image,transform):
 
 def main():
     #transform = dg.mjsynth.mjsynth_gray_pad
-    if len(sys.argv) != 3:
+    if len(sys.argv) < 3:
         print(len(sys.argv))
         print("Add name of the model and number of lables as command line arguements")
         return 1
     output_path = "../dreams/"
     trained_model = sys.argv[1]
     label = int(sys.argv[2])
+    if len(sys.argv) == 3:
+        random_seed = 0
+    else:
+        random_seed = int(sys.argv[3])
     
     nItrs = [400]
     lrs = [0.1] #[0.001,0.005,0.01,0.05,0.1,0.5]
@@ -44,7 +48,7 @@ def main():
 
     for nItr in nItrs:
         for lr in lrs:
-            dream_im = dreamer(label=label,nItr=nItr,lr=lr)
+            dream_im = dreamer(label=label,nItr=nItr,lr=lr,random_seed=random_seed)
 #            dream_im = dreamer.createInputImage()
 #            dream_im = dreamer.prepInputImage(dream_im)
             dream_im = dreamer.postProcess(dream_im)
@@ -54,7 +58,7 @@ def main():
 
 #                label_predicted,activation = label_softmaxed(dreamer.net,dream_im,transform)
 #                print("Label predicted : {} Probability predicted : {}".format(label_predicted,activation))
-            out_im_name = output_path+"dream_"+str(filename)+"_"+str(label)+"_"+str(nItr)+"_"+str(lr)+".png"
+            out_im_name = output_path+"dream_"+str(filename)+"_"+str(label)+"_"+str(nItr)+"_"+str(lr)+"_"+str(random_seed)+".png"
             dreamer.save(dream_im,out_im_name)
 
 if __name__ == "__main__":

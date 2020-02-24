@@ -74,13 +74,13 @@ class DeepDream():
                 print("Data standard deviation set at 0.5 by default")
 
 
-    def __call__(self,im=None,label=0,nItr=100,lr=0.1):
+    def __call__(self,im=None,label=0,nItr=100,lr=0.1,random_seed=0):
         """Does activation maximization on a specific label for specified iterations,
            acts like a functor, and returns an image tensor
         """
 
         if im is None:
-            im = self.createInputImage()
+            im = self.createInputImage(random_seed)
             im = self.prepInputImage(im)
             im = im.to(self.device)
 
@@ -114,10 +114,10 @@ class DeepDream():
 
         return im
 
-    def randomDream(self,im=None,randomSeed=0):
+    def randomDream(self,im=None,random_seed=0):
         """Does activation maximization on a random label for randomly chosen learning rate,number of iterations and gaussian filter size, and returns an image tensor
         """
-        random.seed(randomSeed)
+        random.seed(random_seed)
         rand_nItr = np.asscalar(np.random.normal(500,40,1).astype(int))
         rand_lr = np.asscalar(np.random.normal(0.12,0.01,1))
         rand_label = random.choice(self.labels)
@@ -130,10 +130,12 @@ class DeepDream():
         return im
 
 
-    def createInputImage(self):
+    def createInputImage(self,random_seed):
         if self.input_2d:
             input_size = (self.input_size[1],self.input_size[2])
-            zeroImage_np = np.ones(input_size)*127
+            #zeroImage_np = np.ones(input_size)*127
+            random.seed(random_seed)
+            zeroImage_np = np.random.random(input_size)*255
             zeroImage = Image.fromarray((zeroImage_np).astype('uint8'),'L')
 
         return zeroImage
