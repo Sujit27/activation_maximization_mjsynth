@@ -13,6 +13,7 @@ import re
 
 # Convolutional neural network 
 class DictNet(nn.Module):
+    # DictNet for images with size 32x256, padding transform
     def __init__(self, num_classes=772, conv_capacity=16, fc_capacity=128):
         super().__init__()
         self.conv1 = nn.Sequential(
@@ -71,11 +72,15 @@ class DictNet(nn.Module):
         return out
 
 class DictNet2(DictNet):
+    # DictNet for images rescaled to 32x128 with transformation
     def __init__(self, num_classes=772, conv_capacity=16, fc_capacity=128):
-        super().__init__()
+        self.num_classes = num_classes
+        self.conv_capacity = conv_capacity
+        self.fc_capacity = fc_capacity
+        super().__init__(num_classes=self.num_classes,conv_capacity=self.conv_capacity,fc_capacity=self.fc_capacity)
         self.fc1 = nn.Sequential(
-            nn.Linear(2*8*conv_capacity*32, fc_capacity*32),
-            nn.BatchNorm1d(fc_capacity*32),
+            nn.Linear(2*8*self.conv_capacity*32, self.fc_capacity*32),
+            nn.BatchNorm1d(self.fc_capacity*32),
             nn.ReLU())
        
 
