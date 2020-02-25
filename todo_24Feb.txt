@@ -1,0 +1,31 @@
+DictNet https://arxiv.org/pdf/1604.00187.pdf
+
+get all 9 char words:
+
+*words=[l.split("_")[1] for l in
+open("/home/anguelos/data/mnt/ramdisk/max/90kDICT32px/annotation.txt","r").read().strip().split("\n")
+if len(l.split("_")[1])==9]*
+
+clean them up:
+*words=sorted(set([w[0].upper()+w[1:].lower() for w in words]))*
+save them:
+*open("words_9.txt","w").write("\n".join(sorted(words)))*
+
+Next steps:
+0)Send me the proper reference for HPC request.
+1)migrate everything in the code to batches. visualise batches as well.
+make a boolean for printing on every image the caption. Print 4 pixels for
+one
+2)Parametrize dictnet for conv_capacity (default 16) and fc capacity
+(default 128)
+3)Split the 9char subset into proponer nouns(NLTK) , rare symbols
+[w for w in words if 'q' in w or 'z' in w or 'ae' in w or 'oe' in w or 'ue'
+in w or 'gu' in w or 'ay' in w or 'ke' in w]
+
+4)Try to make dreams more readable (retune dreams), try adversarial losses
+at diferent layers of the dream. Try the "glue" conv layers.
+
+5) start writing.
+
+6) Try to teach reading with a Dream dataset. Eg a PHOC-Net
+https://github.com/anguelos/pytorch-phocnet

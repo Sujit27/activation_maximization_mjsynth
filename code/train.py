@@ -145,11 +145,11 @@ def train_model(output_path,transform,num_labels=None,lr=0.005,batch_size=16,wei
 
 def main():
     output_path = "../models/"
-    num_labels = 100
+    num_labels = 1024#100
     lrs = [0.001]#[0.001,0.005,0.01]
     weight_decays = [0.00]
     batch_sizes = [64]
-    num_epochs = 100
+    num_epochs = 20
     transform = dg.mjsynth.mjsynth_gray_scale
     for batch_size in batch_sizes:
         for weight_decay in weight_decays:

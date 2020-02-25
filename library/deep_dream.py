@@ -113,6 +113,48 @@ class DeepDream():
         print("Probablity after optimizing : {} and label {}".format(val[0],index[0]))
 
         return im
+    
+    def batch_dream(self,im=None,label=[0,1,2,3],nItr=100,lr=0.1,random_seed=0):
+        """Does activation maximization on a specific label for specified iterations,
+           acts like a functor, and returns an image tensor
+        """
+
+        if im is None:
+            im = self.createInputImage(random_seed)
+            im = self.prepInputImage(im)
+            im = im.to(self.device)
+
+            im = Variable(im.unsqueeze(0),requires_grad=True)
+
+        softmaxed_activation = F.softmax(self.net(im),dim=1)
+        val,index = softmaxed_activation.max(1)
+        print("Probablity before optimizing : {} and label {}".format(val[0],index[0]))
+        print("Dreaming...")
+
+        for i in range(nItr):
+
+            out = self.net(im)
+            #loss = -out[0,label]
+            loss = out[0,label]
+            loss.backward()
+
+            avg_grad = np.abs(im.grad.data.cpu().numpy()).mean()
+            norm_lr = lr / (avg_grad + 1e-20)
+            im.data += norm_lr * im.grad.data
+            im.data = torch.clamp(im.data,-1,1)
+            
+            if self.use_gaussian_filter == True:
+                im.data = self.gaussian_filter(im.data)
+
+            im.grad.data.zero_()
+        
+        softmaxed_activation = F.softmax(self.net(im),dim=1)
+        val,index = softmaxed_activation.max(1)
+        print("Probablity after optimizing : {} and label {}".format(val[0],index[0]))
+
+        return im
+
+
 
     def randomDream(self,im=None,random_seed=0):
         """Does activation maximization on a random label for randomly chosen learning rate,number of iterations and gaussian filter size, and returns an image tensor
