@@ -2,7 +2,8 @@ import sys
 sys.path.append("../library/")
 from dict_net import *
 from helper_functions import *
-import csv   
+import csv
+import os
 
 
 
@@ -140,21 +141,30 @@ def train_model(output_path,transform,num_labels=None,lr=0.005,batch_size=16,wei
     model_name = 'net_'+str(num_labels) + '_' + str(lr) +  '_' + str(batch_size) + '_' + str(weight_decay)+'.pth'
     output_file = os.path.join(output_path,model_name)
     torch.save(net.state_dict(),output_file)
+
+    # delete network and empty cache
+    del net
+    torch.cuda.empty_cache()
     #print("MODEL SAVED"tter)
     return labels_list,score_training_list,score_validation_list
 
 def main():
+    os.nice(20)
     output_path = "../models/"
-    num_labels = 1024#100
+    num_labels_list = [100,500,1000,2000]
     lrs = [0.001]#[0.001,0.005,0.01]
     weight_decays = [0.00]
-    batch_sizes = [64]
-    num_epochs = 20
+    #batch_sizes = [64]
+    num_epochs = 50
     transform = dg.mjsynth.mjsynth_gray_scale
-    for batch_size in batch_sizes:
+    for num_labels in num_labels_list:
+        #for batch_size in batch_sizes:
         for weight_decay in weight_decays:
             for lr in lrs:
                 #print("#####")
+                # from the jaderg paper " SGD batch_size should be at leastone fiftth of the number of classes
+                batch_size = int(num_labels/5) 
+
                 labels_list,score_training_list,score_validation_list = train_model(output_path,transform,num_labels=num_labels,lr = lr,batch_size=batch_size,weight_decay=weight_decay,num_epochs=num_epochs)
                 file_name = "result_"+ str(num_labels) + "_l"+str(lr)+"_b"+str(batch_size)+"_w"+str(weight_decay)+".csv"
                 output_csv = os.path.join(output_path,file_name)
