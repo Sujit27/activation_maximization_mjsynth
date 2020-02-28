@@ -38,7 +38,7 @@ def main():
     filename = os.path.basename(trained_model)
     num_labels = int(filename.split('_')[1])
     if label < num_labels:
-        net = DictNet2(num_labels)
+        net = DictNet(num_labels)
     else:
         print("Label number provided exceeds number of neurons in the last layer. Exiting...")
         return 1

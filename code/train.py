@@ -50,7 +50,7 @@ def train_model(output_path,transform,num_labels=None,lr=0.005,batch_size=16,wei
     validationloader = torch.utils.data.DataLoader(ds, batch_size=batch_size,sampler=valid_sampler)
     #trainloader = torch.utils.data.DataLoader(ds,batch_size=batch_size,shuffle=True)
     # create network with number of output nodes same as number of distinct labels
-    net = DictNet2(num_labels)
+    net = DictNet(num_labels)
     net.to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(net.parameters(), lr=lr, weight_decay=weight_decay)
@@ -150,8 +150,9 @@ def train_model(output_path,transform,num_labels=None,lr=0.005,batch_size=16,wei
 
 def main():
     os.nice(20)
-    output_path = "../models/"
-    num_labels_list = [100,500,1000,2000]
+    output_path = "../"
+    #num_labels_list = [100,500,1000,2000]
+    num_labels_list = [100]
     lrs = [0.001]#[0.001,0.005,0.01]
     weight_decays = [0.00]
     #batch_sizes = [64]

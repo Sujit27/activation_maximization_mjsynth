@@ -16,72 +16,54 @@ class DictNet(nn.Module):
     # DictNet for images with size 32x256, padding transform
     def __init__(self, num_classes=772, conv_capacity=16, fc_capacity=128):
         super().__init__()
-        self.conv1 = nn.Sequential(
+        self.cnn_layers = nn.Sequential(
+            # 1st conv layer
             nn.Conv2d(1, conv_capacity*4 , kernel_size=5, stride=1, padding=2),
             nn.BatchNorm2d(conv_capacity*4),
             nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2, stride=2))
-        
-        self.conv2 = nn.Sequential(
-            nn.Conv2d(conv_capacity*4, conv_capacity*8, kernel_size=5, stride=1, padding=2),
-            nn.BatchNorm2d(conv_capacity*8),
+            nn.MaxPool2d(kernel_size=2, stride=2),
+            # 2nd conv layer
+            nn.Conv2d(1, conv_capacity*4 , kernel_size=5, stride=1, padding=2),
+            nn.BatchNorm2d(conv_capacity*4),
             nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2, stride=2))
-        
-        self.conv3 = nn.Sequential(
+            nn.MaxPool2d(kernel_size=2, stride=2),
+            # 3rd conv layer
             nn.Conv2d(conv_capacity*8, conv_capacity*16, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(conv_capacity*16),
-            nn.ReLU())
-            
-        self.conv4 = nn.Sequential(
+            nn.ReLU(),
+            # 4th conv layer
             nn.Conv2d(conv_capacity*16, conv_capacity*32, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(conv_capacity*32),
             nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2, stride=2))
-            
-        self.conv5 = nn.Sequential(
+            nn.MaxPool2d(kernel_size=2, stride=2),
+            #5th conv layer
             nn.Conv2d(conv_capacity*32, conv_capacity*32, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(conv_capacity*32),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2))
 
-        self.fc1 = nn.Sequential(
-            nn.Linear(2*16*conv_capacity*32, fc_capacity*32),
+        self.fc_layers = nn.Sequential(
+            # 1st fc layer
+            nn.Linear(2*8*conv_capacity*32, fc_capacity*32),
             nn.BatchNorm1d(fc_capacity*32),
-            nn.ReLU())
-    
-        self.fc2 = nn.Sequential(
+            nn.ReLU(),
+            # 2nd fc layer
             nn.Linear(fc_capacity*32, fc_capacity*32),
             nn.BatchNorm1d(fc_capacity*32),
             nn.ReLU())
         
-        self.final = nn.Linear(fc_capacity*32, num_classes)
+        self.final_layer = nn.Linear(fc_capacity*32, num_classes)
         #self.softmax = nn.Softmax(dim=1)
         
     def forward(self, x):
-        out = self.conv1(x)
-        out = self.conv2(out)
-        out = self.conv3(out)
-        out = self.conv4(out)
-        out = self.conv5(out)
+        out = self.cnn_layers(x)
         out = out.reshape(out.size(0), -1)
-        out = self.fc1(out)
-        out = self.fc2(out)
-        out = self.final(out)
+        out = self.fc_layers(out)
+        out = self.final_layer(out)
         #out = self.softmax(out)
         return out
 
-class DictNet2(DictNet):
-    # DictNet for images rescaled to 32x128 with transformation
-    def __init__(self, num_classes=772, conv_capacity=16, fc_capacity=128):
-        self.num_classes = num_classes
-        self.conv_capacity = conv_capacity
-        self.fc_capacity = fc_capacity
-        super().__init__(num_classes=self.num_classes,conv_capacity=self.conv_capacity,fc_capacity=self.fc_capacity)
-        self.fc1 = nn.Sequential(
-            nn.Linear(2*8*self.conv_capacity*32, self.fc_capacity*32),
-            nn.BatchNorm1d(self.fc_capacity*32),
-            nn.ReLU())
+
        
 
 
