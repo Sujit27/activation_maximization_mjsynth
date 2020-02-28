@@ -23,8 +23,8 @@ class DictNet(nn.Module):
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2),
             # 2nd conv layer
-            nn.Conv2d(1, conv_capacity*4 , kernel_size=5, stride=1, padding=2),
-            nn.BatchNorm2d(conv_capacity*4),
+            nn.Conv2d(conv_capacity*4, conv_capacity*8 , kernel_size=5, stride=1, padding=2),
+            nn.BatchNorm2d(conv_capacity*8),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2),
             # 3rd conv layer
