@@ -14,19 +14,34 @@ def train_model(previously_trained,output_path,transform,prev_trained_model_name
     device = torch.device("cuda:0" if use_cuda else "cpu")
     #print("Device to be used {}".format(device))
 
+   
+#    if num_labels is None:
+#        num_labels = len(labels_list)
+
+    ds = dg.mjsynth.MjSynthWS('/var/tmp/on63ilaw/mjsynth/',transform)
+
+    # create network with number of output nodes same as number of distinct labels
+    if previously_trained == False:
+        net = DictNet(num_labels)
+        # subset the dataset with desired number of samples per label
+        labels_indices_dict, ds = subset_dataset(ds,num_labels)
+ 
+    else:
+        prev_num_labels = int(((os.path.basename(prev_trained_model_name)).split("_"))[1])
+        trained_net = DictNet(prev_num_labels)
+        trained_net.load_state_dict(torch.load(prev_trained_model_name))
+        net = grow_net(trained_net,num_labels)
+        
+        # subset the dataset with desired number of samples per label
+        labels_indices_dict, ds = subset_dataset_extend(ds,num_labels,prev_num_labels)
+
+
+    net.to(device)
+    # create a list of labels
+    labels_list = list(labels_indices_dict)
 
     # create dataset
     #ds = dg.mjsynth.MjSynthWS('/mnt/c/Users/User/Desktop/mjsynth/')
-    ds = dg.mjsynth.MjSynthWS('/var/tmp/on63ilaw/mjsynth/',transform)
-
-    # subset the dataset with desired number of samples per label
-    labels_indices_dict, ds = subset_dataset(ds,num_labels)
-    #print("Number of labels: {}  Batch size: {}  Weight Decay factor: {}".format(num_labels,batch_size,weight_decay))
-    
-    # create a list of labels
-    labels_list = list(labels_indices_dict)
-    if num_labels is None:
-        num_labels = len(labels_list)
 
     validation_split = 0.15
     dataset_size = len(ds)
@@ -49,16 +64,6 @@ def train_model(previously_trained,output_path,transform,prev_trained_model_name
     trainloader = torch.utils.data.DataLoader(ds, batch_size=batch_size,sampler=train_sampler) 
     validationloader = torch.utils.data.DataLoader(ds, batch_size=batch_size,sampler=valid_sampler)
     #trainloader = torch.utils.data.DataLoader(ds,batch_size=batch_size,shuffle=True)
-    # create network with number of output nodes same as number of distinct labels
-    if previously_trained == False:
-        net = DictNet(num_labels)
-    else:
-        prev_num_labels = int(((os.path.basename(prev_trained_model_name)).split("_"))[1])
-        trained_net = DictNet(prev_num_labels)
-        trained_net.load_state_dict(torch.load(prev_trained_model_name))
-        net = grow_net(trained_net,num_labels)
-
-    net.to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(net.parameters(), lr=lr, weight_decay=weight_decay)
     
@@ -180,7 +185,7 @@ def main():
     lrs = [0.001]#[0.001,0.005,0.01]
     weight_decays = [0.00]
     #batch_sizes = [64]
-    num_epochs = 2
+    num_epochs = 20
     transform = dg.mjsynth.mjsynth_gray_scale
     #for num_labels in num_labels_list:
         #for batch_size in batch_sizes:
@@ -188,9 +193,15 @@ def main():
         for lr in lrs:
             #print("#####")
             # from the jaderg paper " SGD batch_size should be at leastone fiftth of the number of classes
-            batch_size = int(num_labels/5) 
-
+            if previously_trained:
+                batch_size = int((num_labels-prev_num_labels)/5)
+            else:
+                batch_size = int(num_labels/5) 
+            
+            # train
             labels_list,score_training_list,score_validation_list = train_model(previously_trained,output_path,transform,prev_trained_model_name=prev_trained_model_name,num_labels=num_labels,lr = lr,batch_size=batch_size,weight_decay=weight_decay,num_epochs=num_epochs)
+            
+            # save csv
             file_name = "result_"+ str(num_labels) + "_l"+str(lr)+"_b"+str(batch_size)+"_w"+str(weight_decay)+".csv"
             output_csv = os.path.join(output_path,file_name)
             with open(output_csv,'w') as f:
@@ -198,11 +209,14 @@ def main():
                 writer.writerows(zip(score_training_list,score_validation_list))
 
             print("Result saved : {}".format(output_csv))
+            
+            # save labels txt
+            label_file_name = "labels_"+ str(num_labels) + "_l"+str(lr)+"_b"+str(batch_size)+"_w"+str(weight_decay)+".txt"
 
-    labels_file = os.path.join(output_path,"labels.txt")
-    with open(labels_file,'w') as f:
-        for item in labels_list:
-            f.write("%s\n" % item[1])
+            labels_file = os.path.join(output_path,label_file_name)
+            with open(labels_file,'w') as f:
+                for item in labels_list:
+                    f.write("%s\n" % item[1])
 
                 
 if __name__ == "__main__":

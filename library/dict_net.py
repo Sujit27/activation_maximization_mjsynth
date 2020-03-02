@@ -23,8 +23,8 @@ def grow_net(input_net,output_net_num_labels):
 
         
     input_net_num_labels = input_net.final_layer.weight.data.shape[0]
-    output_net.final_layer.weight[:input_net_num_labels,:] = input_net.final_layer.weight.data
-    output_net.final_layer.bias[:input_net_num_labels] = input_net.final_layer.bias.data
+    output_net.final_layer.weight.data[:input_net_num_labels,:] = input_net.final_layer.weight.data
+    output_net.final_layer.bias.data[:input_net_num_labels] = input_net.final_layer.bias.data
     
     return output_net
 

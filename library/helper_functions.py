@@ -1,30 +1,6 @@
 from dict_net import *
 
-## labels list to one hot encoding
-#def list_to_one_hot_dict(labels):
-#    distinct_words = set(labels)
-#    distinct_words = list(distinct_words)
-#    distinct_words.sort()
-#    num_labels = len(distinct_words)
-#    one_hot_dict = {}
-#    index = 0
-#    for word in distinct_words:
-#        one_hot_dict[word] = np.zeros(num_labels)
-#        one_hot_dict[word][index] = 1.0
-#        index += 1 
-#    return one_hot_dict
-#
-## return target for training/validation
-#def one_hot_dict_encode(targets,one_hot_dict):
-#    num_labels = len(list(one_hot_dict.values())[0])
-#    one_hot_output = np.zeros((len(targets),num_labels))
-#    for index in range(len(targets)):
-#        one_hot_output[index,:] = one_hot_dict[targets[index].item()]
-#    
-#    one_hot_output = torch.from_numpy(one_hot_output)
-#
-#    return one_hot_to_argmax(one_hot_output)
-#
+
 def convert_target(targets,labels_list):
     targets = targets.tolist()
     output = torch.zeros(len(targets),dtype=torch.long)
@@ -54,22 +30,14 @@ def extract_name(filename):
 
     return word
 
-#def subset_dataset(ds,num_samples_per_label):
-#    indices = []
-#    class_ids = []
-#    class_names = []
-#    for i in range(len(ds)):
-#        
-#        if (class_ids.count(ds.class_ids[i]) < num_samples_per_label) :
-#            indices.append(i)
-#            class_ids.append(ds.class_ids[i])
-#            class_names.append(extract_name(ds.filenames[i]))
-#
-#
-#    ds_new = torch.utils.data.Subset(ds,indices)
-#    
-#    return class_names,class_ids,ds_new
-#
+def create_indices_list(labels_dict,ds):
+    indices = []
+    for key in labels_dict.keys():
+        indices = indices + labels_dict[key]
+    ds_new = torch.utils.data.Subset(ds,indices)
+    
+    return ds_new
+ 
 def subset_dataset(ds,num_labels=None,num_samples_per_label=None):
     # set num_labels and num_samples_per_label to very high values if no arguements are passed
     if num_labels is None: num_labels = 1000000
@@ -89,10 +57,16 @@ def subset_dataset(ds,num_labels=None,num_samples_per_label=None):
             if (len(labels_dict[label_key]) < num_samples_per_label):
                 labels_dict[label_key].append(i)
 
-    indices = []
-    for key in labels_dict.keys():
-        indices = indices + labels_dict[key]
-    ds_new = torch.utils.data.Subset(ds,indices)
-    
+    ds_new = create_indices_list(labels_dict,ds)
+
     return labels_dict, ds_new
- 
+
+def subset_dataset_extend(ds,num_labels,prev_num_labels):
+    # uses subset_dataset to return dataset that is added on top of a previously trained dataset
+    labels_dict_small,_ = subset_dataset(ds,num_labels=prev_num_labels)
+    labels_dict_large,_ = subset_dataset(ds,num_labels=num_labels)
+
+    diff_dict = {i:labels_dict_large[i] for i in set(labels_dict_large) - set(labels_dict_small)}
+    ds_new = create_indices_list(diff_dict,ds)
+    
+    return diff_dict,ds_new
