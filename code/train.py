@@ -7,7 +7,7 @@ import os
 
 
 
-def train_model(output_path,transform,num_labels=None,lr=0.005,batch_size=16,weight_decay=0.001,num_epochs=1):
+def train_model(previously_trained,output_path,transform,prev_trained_model_name=None,num_labels=None,lr=0.005,batch_size=16,weight_decay=0.001,num_epochs=1):
     
     # CUDA for PyTorch
     use_cuda = torch.cuda.is_available()
@@ -50,7 +50,14 @@ def train_model(output_path,transform,num_labels=None,lr=0.005,batch_size=16,wei
     validationloader = torch.utils.data.DataLoader(ds, batch_size=batch_size,sampler=valid_sampler)
     #trainloader = torch.utils.data.DataLoader(ds,batch_size=batch_size,shuffle=True)
     # create network with number of output nodes same as number of distinct labels
-    net = DictNet(num_labels)
+    if previously_trained == False:
+        net = DictNet(num_labels)
+    else:
+        prev_num_labels = int(((os.path.basename(prev_trained_model_name)).split("_"))[1])
+        trained_net = DictNet(prev_num_labels)
+        trained_net.load_state_dict(torch.load(prev_trained_model_name))
+        net = grow_net(trained_net,num_labels)
+
     net.to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(net.parameters(), lr=lr, weight_decay=weight_decay)
@@ -149,31 +156,48 @@ def train_model(output_path,transform,num_labels=None,lr=0.005,batch_size=16,wei
     return labels_list,score_training_list,score_validation_list
 
 def main():
+    # Can either train a model from start given the number of labels :$ python3 train.py 500
+    # Or can grow an existing trained model ( see ../library/dict_net.py for more details ) by increasing the number of labels to a specified number :$ python3 train.py 1000 ../models/net_###.pth
+    if len(sys.argv) < 2:
+        print(len(sys.argv))
+        print("Add the number of labels as a command line arguement, see description above")
+        return 1
+    num_labels = int(sys.argv[1])
+    previously_trained = False
+    prev_trained_model_name = None
+    prev_num_labels = None
+    if len(sys.argv) == 3:
+        prev_trained_model_name = sys.argv[2]
+        prev_num_labels = int(((os.path.basename(prev_trained_model_name)).split("_"))[1])
+        if os.path.exists(prev_trained_model_name) and prev_num_labels <= num_labels:
+            previously_trained = True
+            
+
     os.nice(20)
-    output_path = "../"
+    output_path = "../models"
     #num_labels_list = [100,500,1000,2000]
-    num_labels_list = [100]
+    #num_labels_list = [500,1000]
     lrs = [0.001]#[0.001,0.005,0.01]
     weight_decays = [0.00]
     #batch_sizes = [64]
-    num_epochs = 50
+    num_epochs = 2
     transform = dg.mjsynth.mjsynth_gray_scale
-    for num_labels in num_labels_list:
+    #for num_labels in num_labels_list:
         #for batch_size in batch_sizes:
-        for weight_decay in weight_decays:
-            for lr in lrs:
-                #print("#####")
-                # from the jaderg paper " SGD batch_size should be at leastone fiftth of the number of classes
-                batch_size = int(num_labels/5) 
+    for weight_decay in weight_decays:
+        for lr in lrs:
+            #print("#####")
+            # from the jaderg paper " SGD batch_size should be at leastone fiftth of the number of classes
+            batch_size = int(num_labels/5) 
 
-                labels_list,score_training_list,score_validation_list = train_model(output_path,transform,num_labels=num_labels,lr = lr,batch_size=batch_size,weight_decay=weight_decay,num_epochs=num_epochs)
-                file_name = "result_"+ str(num_labels) + "_l"+str(lr)+"_b"+str(batch_size)+"_w"+str(weight_decay)+".csv"
-                output_csv = os.path.join(output_path,file_name)
-                with open(output_csv,'w') as f:
-                    writer = csv.writer(f)
-                    writer.writerows(zip(score_training_list,score_validation_list))
+            labels_list,score_training_list,score_validation_list = train_model(previously_trained,output_path,transform,prev_trained_model_name=prev_trained_model_name,num_labels=num_labels,lr = lr,batch_size=batch_size,weight_decay=weight_decay,num_epochs=num_epochs)
+            file_name = "result_"+ str(num_labels) + "_l"+str(lr)+"_b"+str(batch_size)+"_w"+str(weight_decay)+".csv"
+            output_csv = os.path.join(output_path,file_name)
+            with open(output_csv,'w') as f:
+                writer = csv.writer(f)
+                writer.writerows(zip(score_training_list,score_validation_list))
 
-                print("Result saved : {}".format(output_csv))
+            print("Result saved : {}".format(output_csv))
 
     labels_file = os.path.join(output_path,"labels.txt")
     with open(labels_file,'w') as f:

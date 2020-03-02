@@ -11,6 +11,25 @@ import torch.nn.functional as F
 import sklearn.metrics as skm
 import re
 
+def grow_net(input_net,output_net_num_labels):
+    # create a new DictNet with number of output labels increased and return the output_network
+    output_net = DictNet(output_net_num_labels)
+    
+    #for i in range(len(input_net.cnn_layers)):
+    output_net.cnn_layers.load_state_dict(input_net.cnn_layers.state_dict())
+    
+    #for i in range(len(input_net.fc_layers)):
+    output_net.fc_layers.load_state_dict(input_net.fc_layers.state_dict())
+
+        
+    input_net_num_labels = input_net.final_layer.weight.data.shape[0]
+    output_net.final_layer.weight[:input_net_num_labels,:] = input_net.final_layer.weight.data
+    output_net.final_layer.bias[:input_net_num_labels] = input_net.final_layer.bias.data
+    
+    return output_net
+
+
+
 # Convolutional neural network 
 class DictNet(nn.Module):
     # DictNet for images with size 32x256, padding transform
@@ -62,6 +81,8 @@ class DictNet(nn.Module):
         out = self.final_layer(out)
         #out = self.softmax(out)
         return out
+
+    
 
 
        
