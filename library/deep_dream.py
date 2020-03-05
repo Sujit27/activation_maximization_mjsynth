@@ -155,11 +155,11 @@ class DeepDream():
 
 
 
-    def random_batch_dream(self,num_labels,batch_size,random_seed=0):
+    def random_batch_dream(self,total_num_labels,batch_size,random_seed=0):
         """Does batch dreaming by randomly choosing n labels from range(num_labels) given by the batch_size with given random_seed
         """
         random.seed(random_seed)
-        all_labels = [i for i in range(num_labels)]
+        all_labels = [i for i in range(total_num_labels)]
         labels = random.sample(all_labels,batch_size)
 
         im = self.batch_dream(labels=labels,random_seed=random_seed)
@@ -171,7 +171,7 @@ class DeepDream():
         if self.input_2d:
             input_size = (self.input_size[1],self.input_size[2])
             #zeroImage_np = np.ones(input_size)*127
-            random.seed(random_seed)
+            np.random.seed(random_seed)
             zeroImage_np = np.random.random(input_size)*255
             zeroImage = Image.fromarray((zeroImage_np).astype('uint8'),'L')
 
