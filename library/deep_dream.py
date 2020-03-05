@@ -114,28 +114,30 @@ class DeepDream():
 
         return im
     
-    def batch_dream(self,im=None,label=[0,1,2,3],nItr=100,lr=0.1,random_seed=0):
-        """Does activation maximization on a specific label for specified iterations,
+    def batch_dream(self,im=None,labels=[0,1,2,3],nItr=100,lr=0.1,random_seed=0):
+        """Does activation maximization on list of labels for specified iterations,
            acts like a functor, and returns an image tensor
         """
+        labels_tensor = torch.LongTensor(labels)
+        
+        
+        im = self.createInputImage(random_seed)
+        im = self.prepInputImage(im)
+        im = torch.stack([im]*len(labels),dim=0)
+        im = im.to(self.device)
 
-        if im is None:
-            im = self.createInputImage(random_seed)
-            im = self.prepInputImage(im)
-            im = im.to(self.device)
-
-            im = Variable(im.unsqueeze(0),requires_grad=True)
-
-        softmaxed_activation = F.softmax(self.net(im),dim=1)
-        val,index = softmaxed_activation.max(1)
-        print("Probablity before optimizing : {} and label {}".format(val[0],index[0]))
+        im = Variable(im,requires_grad=True)
+ 
         print("Dreaming...")
 
-        for i in range(nItr):
+        for _ in range(nItr):
 
             out = self.net(im)
-            #loss = -out[0,label]
-            loss = out[0,label]
+            
+            loss = 0
+            for i in range((out.shape)[0]):
+                loss += out[i,labels[i]]
+            
             loss.backward()
 
             avg_grad = np.abs(im.grad.data.cpu().numpy()).mean()
@@ -147,29 +149,22 @@ class DeepDream():
                 im.data = self.gaussian_filter(im.data)
 
             im.grad.data.zero_()
-        
-        softmaxed_activation = F.softmax(self.net(im),dim=1)
-        val,index = softmaxed_activation.max(1)
-        print("Probablity after optimizing : {} and label {}".format(val[0],index[0]))
+                
 
         return im
 
 
 
-    def randomDream(self,im=None,random_seed=0):
-        """Does activation maximization on a random label for randomly chosen learning rate,number of iterations and gaussian filter size, and returns an image tensor
+    def random_batch_dream(self,num_labels,batch_size,random_seed=0):
+        """Does batch dreaming by randomly choosing n labels from range(num_labels) given by the batch_size with given random_seed
         """
         random.seed(random_seed)
-        rand_nItr = np.asscalar(np.random.normal(500,40,1).astype(int))
-        rand_lr = np.asscalar(np.random.normal(0.12,0.01,1))
-        rand_label = random.choice(self.labels)
-        if self.use_gaussian_filter == True:
-            rand_sigma = np.asscalar(np.random.normal(0.45,0.05,1))
-            self.setGaussianFilter(sigma=rand_sigma)
+        all_labels = [i for i in range(num_labels)]
+        labels = random.sample(all_labels,batch_size)
 
-        im = self.__call__(im,label=rand_label,nItr=rand_nItr,lr=rand_lr)
+        im = self.batch_dream(labels=labels,random_seed=random_seed)
 
-        return im
+        return im,labels
 
 
     def createInputImage(self,random_seed):
@@ -196,8 +191,6 @@ class DeepDream():
     def postProcess(self,image):
         image_tensor = torch.squeeze(image.data) # remove the batch dimension
         if self.input_2d:
-    #        image_tensor.transpose_(0,1) # convert from CxHxW to HxWxC format
-    #        image_tensor.transpose_(1,2)
             image_tensor = image_tensor*self.data_std[0] + self.data_mean[0] # std and mean for mjsynth 
 
             image_tensor = image_tensor.cpu() # back to host
@@ -205,6 +198,18 @@ class DeepDream():
             img = Image.fromarray((image_tensor.data.numpy()*255).astype('uint8'), 'L') #torch tensor to PIL image_tensor
 
         return img
+    
+    def batch_postProcess(self,image_tensor):
+        if self.input_2d:
+            image_tensor = image_tensor*self.data_std[0] + self.data_mean[0] # std and mean for mjsynth 
+
+            image_tensor = image_tensor.cpu() # back to host
+        
+        grid_img = utils.make_grid(image_tensor)
+        plt.imshow(np.transpose(grid_img.detach().numpy(),(1, 2, 0)))
+        plt.savefig("batch_dream.png")
+
+        return grid_img
 
     def show(self,img):
 #         plt.figure(num=1, figsize=(12, 8), dpi=120, facecolor='w', edgecolor='k')
@@ -253,7 +258,7 @@ class DeepDream():
 
 def main():
     network = DictNet(5)
-    dreamer = DeepDream(network,(1,32,256),(0.47,),(0.14,),use_gaussian_filter=True)
+    dreamer = DeepDream(network,(1,32,128),(0.47,),(0.14,),use_gaussian_filter=True)
     dream = dreamer(label=1,nItr=500)  
     output = dreamer.postProcess(dream)
     dreamer.save(output,"dream_image.png") # saves image

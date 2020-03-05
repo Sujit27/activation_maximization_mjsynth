@@ -19,12 +19,15 @@ def train_model(previously_trained,output_path,transform,prev_trained_model_name
 #        num_labels = len(labels_list)
 
     ds = dg.mjsynth.MjSynthWS('/var/tmp/on63ilaw/mjsynth/',transform)
+    labels_and_indices_dict =  csv_to_dict('../library/labels_and_indices.csv')
+    labels_dict = csv_to_dict('../library/labels_1.csv')
+    labels_inv_dict = csv_to_dict('../library/labels_2.csv')
 
     # create network with number of output nodes same as number of distinct labels
     if previously_trained == False:
         net = DictNet(num_labels)
         # subset the dataset with desired number of samples per label
-        labels_indices_dict, ds = subset_dataset(ds,num_labels)
+        ds = extract_dataset(ds,labels_and_indices_dict,labels_dict,num_labels,prev_num_labels=0)
  
     else:
         prev_num_labels = int(((os.path.basename(prev_trained_model_name)).split("_"))[1])
@@ -33,12 +36,12 @@ def train_model(previously_trained,output_path,transform,prev_trained_model_name
         net = grow_net(trained_net,num_labels)
         
         # subset the dataset with desired number of samples per label
-        labels_indices_dict, ds = subset_dataset_extend(ds,num_labels,prev_num_labels)
+        ds = extract_dataset(ds,labels_and_indices_dict,labels_dict,num_labels,prev_num_labels)
 
 
     net.to(device)
     # create a list of labels
-    labels_list = list(labels_indices_dict)
+    #labels_list = list(labels_indices_dict)
 
     # create dataset
     #ds = dg.mjsynth.MjSynthWS('/mnt/c/Users/User/Desktop/mjsynth/')
@@ -80,7 +83,7 @@ def train_model(previously_trained,output_path,transform,prev_trained_model_name
         for i, data in enumerate(trainloader, 0):
             images, targets = data
             # return position of the targets in labels_list as the new target
-            targets = convert_target(targets,labels_list)
+            targets = convert_target(targets,labels_inv_dict)
 
             images = images.to(device)
             targets = targets.to(device)
@@ -101,7 +104,7 @@ def train_model(previously_trained,output_path,transform,prev_trained_model_name
                 net.eval()
                 with torch.no_grad():
                     images, targets = data
-                    targets = convert_target(targets,labels_list)
+                    targets = convert_target(targets,labels_inv_dict)
                    
                     images = images.to(device)
                     targets = targets.to(device)
@@ -127,7 +130,7 @@ def train_model(previously_trained,output_path,transform,prev_trained_model_name
         for j, data in enumerate(validationloader,0):
             with torch.no_grad():
                 images, targets = data
-                targets = convert_target(targets,labels_list)
+                targets = convert_target(targets,labels_inv_dict)
 
                 images = images.to(device)
                 targets = targets.to(device)
@@ -158,7 +161,7 @@ def train_model(previously_trained,output_path,transform,prev_trained_model_name
     del net
     torch.cuda.empty_cache()
     #print("MODEL SAVED"tter)
-    return labels_list,score_training_list,score_validation_list
+    return score_training_list,score_validation_list
 
 def main():
     # Can either train a model from start given the number of labels :$ python3 train.py 500
@@ -185,7 +188,7 @@ def main():
     lrs = [0.001]#[0.001,0.005,0.01]
     weight_decays = [0.00]
     #batch_sizes = [64]
-    num_epochs = 20
+    num_epochs = 10
     transform = dg.mjsynth.mjsynth_gray_scale
     #for num_labels in num_labels_list:
         #for batch_size in batch_sizes:
@@ -199,7 +202,7 @@ def main():
                 batch_size = int(num_labels/5) 
             
             # train
-            labels_list,score_training_list,score_validation_list = train_model(previously_trained,output_path,transform,prev_trained_model_name=prev_trained_model_name,num_labels=num_labels,lr = lr,batch_size=batch_size,weight_decay=weight_decay,num_epochs=num_epochs)
+            score_training_list,score_validation_list = train_model(previously_trained,output_path,transform,prev_trained_model_name=prev_trained_model_name,num_labels=num_labels,lr = lr,batch_size=batch_size,weight_decay=weight_decay,num_epochs=num_epochs)
             
             # save csv
             file_name = "result_"+ str(num_labels) + "_l"+str(lr)+"_b"+str(batch_size)+"_w"+str(weight_decay)+".csv"
@@ -210,14 +213,7 @@ def main():
 
             print("Result saved : {}".format(output_csv))
             
-            # save labels txt
-            label_file_name = "labels_"+ str(num_labels) + "_l"+str(lr)+"_b"+str(batch_size)+"_w"+str(weight_decay)+".txt"
-
-            labels_file = os.path.join(output_path,label_file_name)
-            with open(labels_file,'w') as f:
-                for item in labels_list:
-                    f.write("%s\n" % item[1])
-
+            
                 
 if __name__ == "__main__":
     main()
