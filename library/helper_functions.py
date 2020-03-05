@@ -13,11 +13,11 @@ def convert_target(targets,labels_inv_dict):
 
     return output
 
-def label_to_word(label_list):
-    labels_and_indices_dict = csv_to_dict("labels_and_indices.csv")
-    label_dict = csv_to_dict("labels_1.csv")
-    labels = [label_dict[label_num] for label_num in label_list]
-    word_list = [key[1] for key in labels_and_indices_dict.keys() if key[0] in labels]
+def label_to_word(label_num_list):
+    labels_dict = csv_to_dict("labels_full.csv")
+    word_list = []
+    for label_num in label_num_list:
+        word_list.append(labels_dict[label_num][1])
 
     return word_list
 
