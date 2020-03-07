@@ -15,6 +15,7 @@ import math
 import os
 import random
 from dict_net import *
+from helper_functions import *
 
 # Created by Sujit Sahoo, 13 Feb 2020
 # sujit.sahoo@fau.de
@@ -38,7 +39,7 @@ class DeepDream():
         self.ouputImage = None
         self.use_gaussian_filter = use_gaussian_filter
         # list variables used in randomDream method
-        self.labels = [i for i in range(1000)]
+        self.total_num_labels = self.net.final_layer.weight.shape[0]
         # set methods
         self.setDevice()
         self.setNetwork()
@@ -112,59 +113,8 @@ class DeepDream():
         val,index = softmaxed_activation.max(1)
         print("Probablity after optimizing : {} and label {}".format(val[0],index[0]))
 
+        #return im,val,index
         return im
-    
-    def batch_dream(self,im=None,labels=[0,1,2,3],nItr=100,lr=0.1,random_seed=0):
-        """Does activation maximization on list of labels for specified iterations,
-           acts like a functor, and returns an image tensor
-        """
-        labels_tensor = torch.LongTensor(labels)
-        
-        
-        im = self.createInputImage(random_seed)
-        im = self.prepInputImage(im)
-        im = torch.stack([im]*len(labels),dim=0)
-        im = im.to(self.device)
-
-        im = Variable(im,requires_grad=True)
- 
-        print("Dreaming...")
-
-        for _ in range(nItr):
-
-            out = self.net(im)
-            
-            loss = 0
-            for i in range((out.shape)[0]):
-                loss += out[i,labels[i]]
-            
-            loss.backward()
-
-            avg_grad = np.abs(im.grad.data.cpu().numpy()).mean()
-            norm_lr = lr / (avg_grad + 1e-20)
-            im.data += norm_lr * im.grad.data
-            im.data = torch.clamp(im.data,-1,1)
-            
-            if self.use_gaussian_filter == True:
-                im.data = self.gaussian_filter(im.data)
-
-            im.grad.data.zero_()
-                
-
-        return im
-
-
-
-    def random_batch_dream(self,total_num_labels,batch_size,random_seed=0):
-        """Does batch dreaming by randomly choosing n labels from range(num_labels) given by the batch_size with given random_seed
-        """
-        random.seed(random_seed)
-        all_labels = [i for i in range(total_num_labels)]
-        labels = random.sample(all_labels,batch_size)
-
-        im = self.batch_dream(labels=labels,random_seed=random_seed)
-
-        return im,labels
 
 
     def createInputImage(self,random_seed):
@@ -199,17 +149,6 @@ class DeepDream():
 
         return img
     
-    def batch_postProcess(self,image_tensor):
-        if self.input_2d:
-            image_tensor = image_tensor*self.data_std[0] + self.data_mean[0] # std and mean for mjsynth 
-
-            image_tensor = image_tensor.cpu() # back to host
-        
-        grid_img = utils.make_grid(image_tensor)
-        plt.imshow(np.transpose(grid_img.detach().numpy(),(1, 2, 0)))
-        plt.savefig("batch_dream.png")
-
-        return grid_img
 
     def show(self,img):
 #         plt.figure(num=1, figsize=(12, 8), dpi=120, facecolor='w', edgecolor='k')
@@ -254,8 +193,214 @@ class DeepDream():
             self.gaussian_filter = gauss_filter.to(self.device)
             #print("gaussian_filter created")
 
+class DeepDreamBatch(DeepDream):
+    '''
+    Works the same as DeepDream except that it creates dreams in batches
+    '''
+    def __init__(self,net,input_size,data_mean=None,data_std=None,use_gaussian_filter=False):
+        super().__init__(net,input_size,data_mean,data_std,use_gaussian_filter)
+        
+    def random_batch_dream(self,batch_size,random_seed=0):
+        """Does batch dreaming by randomly choosing n labels from range(num_labels) given by the batch_size with given random_seed
+        """
+        random.seed(random_seed)
+        all_labels = [i for i in range(self.total_num_labels)]
+        labels = random.sample(all_labels,batch_size)
+
+        im = self.batch_dream(labels=labels,random_seed=random_seed)
+
+        return im,labels
+     
+    def batch_dream(self,im=None,labels=[0,1,2,3],nItr=100,lr=0.1,random_seed=0):
+        """Does activation maximization on list of labels for specified iterations,
+           acts like a functor, and returns an image tensor
+        """
+        
+        im = self.set_batch_dream(labels,random_seed)
+        im = self.batch_dream_kernel(im,labels,nItr,lr)
+        
+        return im
+        
+    def set_batch_dream(self,labels,random_seed):
+        
+        im = self.createInputImage(random_seed)
+        im = self.prepInputImage(im)
+        im = torch.stack([im]*len(labels),dim=0)
+        im = im.to(self.device)
+
+        im = Variable(im,requires_grad=True)
+        
+        return im
+        
+        
+    def batch_dream_kernel(self,im,labels,nItr,lr):
+        
+        for _ in range(nItr):
+
+            out = self.net(im)
+            
+            loss = 0
+            for i in range((out.shape)[0]):
+                loss += out[i,labels[i]]
+            
+            loss.backward()
+
+            avg_grad = np.abs(im.grad.data.cpu().numpy()).mean()
+            norm_lr = lr / (avg_grad + 1e-20)
+            im.data += norm_lr * im.grad.data
+            im.data = torch.clamp(im.data,-1,1)
+            
+            if self.use_gaussian_filter == True:
+                im.data = self.gaussian_filter(im.data)
+
+            im.grad.data.zero_()
+                
+
+        return im
+        
+    
+    def batch_postProcess(self,image_tensor):
+        if self.input_2d:
+            image_tensor = image_tensor*self.data_std[0] + self.data_mean[0] # std and mean for mjsynth 
+
+            image_tensor = image_tensor.cpu() # back to host
+        
+        grid_img = utils.make_grid(image_tensor)
+        plt.figure(num=None, figsize=(8, 6), dpi=80, facecolor='w', edgecolor='k')
+        plt.imshow(np.transpose(grid_img.detach().numpy(),(1, 2, 0)))
+        plt.savefig("batch_dream.png")
+
+        return grid_img
+    
+    
+class DeepDreamGAN(DeepDreamBatch):
+    '''
+    Given a network for dreaming, input size to the network and channel wise mean,std of the data it was trained on and another
+    network to act as adversarial discriminator between real and dream,label specific 'deep dream' images can be created
+    '''
+    def __init__(self,net,input_size,data_mean=None,data_std=None,use_gaussian_filter=False,discrim_net=None):
+        
+        super().__init__(net,input_size,data_mean,data_std,use_gaussian_filter)
+        self.discrim_net = discrim_net
+        self.set_discrim_net()
+        
+    def set_discrim_net(self):
+        if self.discrim_net is None: # if no discriminator is initialized, create one
+            self.discrim_net = DictNet(2)
+            print("Discriminator initialized with DictNet with 2 final outputs")
+        else:
+            num_final_output = self.discrim_net.final_layer.weight.shape[0]
+            if num_final_output != 2:
+                print("Error : Number of final output for the discminator is {}, it should be 2".format(num_final_output))
+            else:
+                print("Discriminator network set")
+
+        self.discrim_net.to(self.device)
+        
+    def random_batch_dream_GAN(self,batch_size,random_seed=0):
+        """Does batch dreaming by randomly choosing n labels from range(num_labels) given by the batch_size with given random_seed
+        """
+        random.seed(random_seed)
+        all_labels = [i for i in range(self.total_num_labels)]
+        labels = random.sample(all_labels,batch_size)
+
+        im = self.batch_dream_GAN(labels=labels,random_seed=random_seed)
+
+        return im,labels
+        
+        
+    def batch_dream_GAN(self,labels=[0,1,2,3],n_adv_loops=10,nItr_g=100,nItr_d=10,lr_g=0.1,lr_d=0.1,random_seed=0):
+
+        im = self.set_batch_dream(labels,random_seed)
+        
+        for _ in range(n_adv_loops):
+            
+            im = self.batch_dream_kernel(im,labels,nItr_g,lr_g)
+
+            im = self.batch_discrim_kernel(im,labels,nItr_d,lr_d)
 
 
+        return im
+        
+    def batch_discrim_kernel(self,im,labels,nItr,lr):
+        
+        for _ in range(nItr):
+
+            out = self.net(im)
+            
+            loss = 0
+            for i in range((out.shape)[0]):
+                loss += out[i,1] # loss is the activation that how 'real' is the input image
+            
+            loss.backward()
+
+            avg_grad = np.abs(im.grad.data.cpu().numpy()).mean()
+            norm_lr = lr / (avg_grad + 1e-20)
+            im.data += norm_lr * im.grad.data
+            im.data = torch.clamp(im.data,-1,1)
+            
+            if self.use_gaussian_filter == True:
+                im.data = self.gaussian_filter(im.data)
+
+            im.grad.data.zero_()
+                
+
+        return im
+                
+    def train_discriminator(self,dataset_real,lr=0.001,batch_size=32,num_epochs=10,static_train=True):
+        # the discriminator is trained with mixtur of real and dream images till training accuracy threshold is exceeded
+        # if static_train is false, the dreams that are created during training for classification are adverserially created dreams. Takes musch more time
+
+        trainloader = torch.utils.data.DataLoader(dataset_real, batch_size=batch_size,shuffle=True) 
+        criterion = nn.CrossEntropyLoss()
+        optimizer = optim.Adam(self.discrim_net.parameters(), lr=lr)
+
+        score_training_list = []
+        for epoch in range(num_epochs):
+            self.discrim_net.train()
+            training_acc_score_list = []
+            for i,data in enumerate(trainloader,0):
+                real_images, _ = data # extracted a batch of real images and label
+                random_seed = np.random.random()
+                if static_train==True:
+                    dream_images, _ = self.random_batch_dream(self,batch_size,random_seed=random_seed) # create dream images from dreamer
+                else:
+                    dream_images, _ = self.random_batch_dream_GAN(self,batch_size,random_seed=random_seed) # create dream images adversarially from dreamer and discriminator
+                # set up the targets
+                real_targets = torch.ones(batch_size)
+                dream_targets = torch.zeros(batch_size)
+                targets = torch.cat((real_targets,dream_targets))
+                targets = targets.type(torch.LongTensor)
+
+                # concat real and dream images
+                images = torch.cat((real_images,dream_images),0)
+
+                # move batch to device
+                images = images.to(device)
+                targets = targets.to(device)
+
+                optimizer.zero_grad()
+                outputs = self.discrim_net(images)
+
+                loss = criterion(outputs, targets)
+                loss.backward()
+                optimizer.step()
+
+                # measure training accuracy
+                preds = one_hot_to_argmax(outputs)
+                training_acc_score = skm.accuracy_score(targets.cpu().detach().numpy(),preds.cpu().detach().numpy())
+                training_acc_score_list.append(training_acc_score)
+        
+            training_acc_avg = sum(training_acc_score_list)/len(training_acc_score_list)
+            score_training_list.append(training_acc_avg)
+            print("{},{}".format(epoch,training_acc_avg))
+
+        output_file = os.path.join("../models/","discriminator.pth")
+        torch.save(self.discrim_net.state_dict(),output_file)
+
+
+ 
+        
 def main():
     network = DictNet(5)
     dreamer = DeepDream(network,(1,32,128),(0.47,),(0.14,),use_gaussian_filter=True)
