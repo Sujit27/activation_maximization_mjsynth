@@ -203,7 +203,7 @@ class DeepDreamBatch(DeepDream):
     def random_batch_dream(self,batch_size,random_seed=0):
         """Does batch dreaming by randomly choosing n labels from range(num_labels) given by the batch_size with given random_seed
         """
-        random.seed(random_seed)
+#         random.seed(random_seed)
         all_labels = [i for i in range(self.total_num_labels)]
         labels = random.sample(all_labels,batch_size)
 
@@ -211,13 +211,14 @@ class DeepDreamBatch(DeepDream):
 
         return im,labels
      
-    def batch_dream(self,im=None,labels=[0,1,2,3],nItr=100,lr=0.1,random_seed=0):
+    def batch_dream(self,labels=[0,1,2,3],nItr=100,lr=0.1,random_seed=0):
         """Does activation maximization on list of labels for specified iterations,
            acts like a functor, and returns an image tensor
         """
         
         im = self.set_batch_dream(labels,random_seed)
         im = self.batch_dream_kernel(im,labels,nItr,lr)
+        im = self.deprocess(im)
         
         return im
         
@@ -258,13 +259,14 @@ class DeepDreamBatch(DeepDream):
 
         return im
         
-    
-    def batch_postProcess(self,image_tensor):
+    def deprocess(self,image_tensor):
         if self.input_2d:
             image_tensor = image_tensor*self.data_std[0] + self.data_mean[0] # std and mean for mjsynth 
-
-            image_tensor = image_tensor.cpu() # back to host
         
+        return image_tensor
+    
+    def show(self,image_tensor):
+        image_tensor = image_tensor.cpu() # back to host
         grid_img = utils.make_grid(image_tensor)
         plt.figure(num=None, figsize=(8, 6), dpi=80, facecolor='w', edgecolor='k')
         plt.imshow(np.transpose(grid_img.detach().numpy(),(1, 2, 0)))
@@ -297,10 +299,15 @@ class DeepDreamGAN(DeepDreamBatch):
 
         self.discrim_net.to(self.device)
         
+    def reinit_discrim_net(self):
+        self.discrim_net = DictNet(2)
+        self.discrim_net.to(self.device)
+        print("Discriminator re-initialized")
+        
     def random_batch_dream_GAN(self,batch_size,random_seed=0):
         """Does batch dreaming by randomly choosing n labels from range(num_labels) given by the batch_size with given random_seed
         """
-        random.seed(random_seed)
+#         random.seed(random_seed)
         all_labels = [i for i in range(self.total_num_labels)]
         labels = random.sample(all_labels,batch_size)
 
@@ -313,20 +320,18 @@ class DeepDreamGAN(DeepDreamBatch):
 
         im = self.set_batch_dream(labels,random_seed)
         
-        for _ in range(n_adv_loops):
-            
+        for _ in range(n_adv_loops):            
             im = self.batch_dream_kernel(im,labels,nItr_g,lr_g)
-
             im = self.batch_discrim_kernel(im,labels,nItr_d,lr_d)
-
+            
+        im = self.deprocess(im)
 
         return im
         
     def batch_discrim_kernel(self,im,labels,nItr,lr):
         
         for _ in range(nItr):
-
-            out = self.net(im)
+            out = self.discrim_net(im)
             
             loss = 0
             for i in range((out.shape)[0]):
@@ -347,7 +352,7 @@ class DeepDreamGAN(DeepDreamBatch):
 
         return im
                 
-    def train_discriminator(self,dataset_real,lr=0.001,batch_size=32,num_epochs=10,static_train=True):
+    def train_discriminator(self,dataset_real,num_epochs=1,lr=0.001,batch_size=64,static_train=True,training_acc_threshold=0.99):
         # the discriminator is trained with mixtur of real and dream images till training accuracy threshold is exceeded
         # if static_train is false, the dreams that are created during training for classification are adverserially created dreams. Takes musch more time
 
@@ -361,23 +366,25 @@ class DeepDreamGAN(DeepDreamBatch):
             training_acc_score_list = []
             for i,data in enumerate(trainloader,0):
                 real_images, _ = data # extracted a batch of real images and label
-                random_seed = np.random.random()
+                random_seed = np.random.randint(1000)
+                print('Dreaming a batch..')
                 if static_train==True:
-                    dream_images, _ = self.random_batch_dream(self,batch_size,random_seed=random_seed) # create dream images from dreamer
+                    dream_images, _ = self.random_batch_dream(batch_size,random_seed) # create dream images from dreamer
                 else:
-                    dream_images, _ = self.random_batch_dream_GAN(self,batch_size,random_seed=random_seed) # create dream images adversarially from dreamer and discriminator
+                    dream_images, _ = self.random_batch_dream_GAN(batch_size,random_seed) # create dream images adversarially from dreamer and discriminator
+                print('Dream batch generated')    
                 # set up the targets
                 real_targets = torch.ones(batch_size)
                 dream_targets = torch.zeros(batch_size)
                 targets = torch.cat((real_targets,dream_targets))
                 targets = targets.type(torch.LongTensor)
 
-                # concat real and dream images
+                # concat real and dream images and move batch to device
+                real_images = real_images.to(self.device)
                 images = torch.cat((real_images,dream_images),0)
 
-                # move batch to device
-                images = images.to(device)
-                targets = targets.to(device)
+#                 images = images.to(device)
+                targets = targets.to(self.device)
 
                 optimizer.zero_grad()
                 outputs = self.discrim_net(images)
@@ -390,12 +397,18 @@ class DeepDreamGAN(DeepDreamBatch):
                 preds = one_hot_to_argmax(outputs)
                 training_acc_score = skm.accuracy_score(targets.cpu().detach().numpy(),preds.cpu().detach().numpy())
                 training_acc_score_list.append(training_acc_score)
+                
+                print("{},{},{},{}".format(i,random_seed,loss,training_acc_score))
+                if training_acc_score > training_acc_threshold:
+                    break
         
-            training_acc_avg = sum(training_acc_score_list)/len(training_acc_score_list)
-            score_training_list.append(training_acc_avg)
-            print("{},{}".format(epoch,training_acc_avg))
-
-        output_file = os.path.join("../models/","discriminator.pth")
+#             training_acc_avg = sum(training_acc_score_list)/len(training_acc_score_list)
+#             score_training_list.append(training_acc_avg)
+#             print("{},{},{}".format(epoch,random_seed,training_acc_avg))
+        if static_train == True:
+            output_file = os.path.join("../models/","discriminator_0.pth")
+        else:
+            output_file = os.path.join("../models/","discriminator_1.pth")
         torch.save(self.discrim_net.state_dict(),output_file)
 
 
