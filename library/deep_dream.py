@@ -280,16 +280,22 @@ class DeepDreamGAN(DeepDreamBatch):
     Given a network for dreaming, input size to the network and channel wise mean,std of the data it was trained on and another
     network to act as adversarial discriminator between real and dream,label specific 'deep dream' images can be created
     '''
-    def __init__(self,net,input_size,data_mean=None,data_std=None,use_gaussian_filter=False,discrim_net=None):
+    def __init__(self,net,input_size,data_mean=None,data_std=None,use_gaussian_filter=False,discrim_net=None,glue_layer=None):
         
         super().__init__(net,input_size,data_mean,data_std,use_gaussian_filter)
         self.discrim_net = discrim_net
         self.set_discrim_net()
+        self.glue_layer = glue_layer
+        if self.glue_layer is not None:
+            self.glue_layer.to(self.device)
         
     def set_discrim_net(self):
         if self.discrim_net is None: # if no discriminator is initialized, create one
-            self.discrim_net = DictNet(2)
-            print("Discriminator initialized with DictNet with 2 final outputs")
+            #self.discrim_net = DictNet(2)
+            #print("Discriminator initialized with DictNet with 2 final outputs")
+            self.discrim_net = DiscrimNet(2)
+            print("Discriminator initialized with DiscrimNet with 2 final outputs")
+
         else:
             num_final_output = self.discrim_net.final_layer.weight.shape[0]
             if num_final_output != 2:
@@ -322,6 +328,9 @@ class DeepDreamGAN(DeepDreamBatch):
         
         for _ in range(n_adv_loops):            
             im = self.batch_dream_kernel(im,labels,nItr_g,lr_g)
+            if self.glue_layer is not None:
+                im,_ = self.glue_layer(im)
+                im = Variable(im,requires_grad=True) # create a variable out of the output of the glue layer
             im = self.batch_discrim_kernel(im,labels,nItr_d,lr_d)
             
         im = self.deprocess(im)
@@ -352,55 +361,51 @@ class DeepDreamGAN(DeepDreamBatch):
 
         return im
                 
-    def train_discriminator(self,dataset_real,num_epochs=1,lr=0.001,batch_size=64,static_train=True,training_acc_threshold=0.99):
+    def train_model(self,dataset_real,num_epochs=1,lr=0.001,batch_size=64,static_train=True,training_acc_threshold=None):
         # the discriminator is trained with mixtur of real and dream images till training accuracy threshold is exceeded
         # if static_train is false, the dreams that are created during training for classification are adverserially created dreams. Takes musch more time
 
         trainloader = torch.utils.data.DataLoader(dataset_real, batch_size=batch_size,shuffle=True) 
-        criterion = nn.CrossEntropyLoss()
-        optimizer = optim.Adam(self.discrim_net.parameters(), lr=lr)
+        # set loss criterion and optimizer for discriminator
+        criterion_discrim = nn.CrossEntropyLoss()
+        optimizer_discrim = optim.Adam(self.discrim_net.parameters(), lr=lr)
+        
+        # set loss criterion and optimizer for glue_layer
+        if self.glue_layer is not None:
+            criterion_glue_layer = nn.CrossEntropyLoss()
+            optimizer_glue_layer = optim.Adam(self.glue_layer.parameters(), lr=lr)
 
-        score_training_list = []
+        #score_training_list = []
         for epoch in range(num_epochs):
             self.discrim_net.train()
-            training_acc_score_list = []
+            discrim_training_acc_score_list = []
+            glue_layer_training_acc_score_list = []
             for i,data in enumerate(trainloader,0):
-                real_images, _ = data # extracted a batch of real images and label
-                random_seed = np.random.randint(1000)
-                print('Dreaming a batch..')
-                if static_train==True:
-                    dream_images, _ = self.random_batch_dream(batch_size,random_seed) # create dream images from dreamer
-                else:
-                    dream_images, _ = self.random_batch_dream_GAN(batch_size,random_seed) # create dream images adversarially from dreamer and discriminator
-                print('Dream batch generated')    
-                # set up the targets
-                real_targets = torch.ones(batch_size)
-                dream_targets = torch.zeros(batch_size)
-                targets = torch.cat((real_targets,dream_targets))
-                targets = targets.type(torch.LongTensor)
-
-                # concat real and dream images and move batch to device
-                real_images = real_images.to(self.device)
-                images = torch.cat((real_images,dream_images),0)
-
-#                 images = images.to(device)
-                targets = targets.to(self.device)
-
-                optimizer.zero_grad()
+                #batch_size = self.check_batch_size(data,batch_size) # checks if data available is equal to batch_size
+                images,targets = self.create_data_and_targets(data,batch_size,static_train)                
+                    
+                # optimize weights of discriminator
+                optimizer_discrim.zero_grad()
                 outputs = self.discrim_net(images)
 
-                loss = criterion(outputs, targets)
-                loss.backward()
-                optimizer.step()
-
-                # measure training accuracy
-                preds = one_hot_to_argmax(outputs)
-                training_acc_score = skm.accuracy_score(targets.cpu().detach().numpy(),preds.cpu().detach().numpy())
-                training_acc_score_list.append(training_acc_score)
+                loss_discrim = criterion_discrim(outputs, targets)
+                loss_discrim.backward()
+                optimizer_discrim.step()
                 
-                print("{},{},{},{}".format(i,random_seed,loss,training_acc_score))
-                if training_acc_score > training_acc_threshold:
-                    break
+                # optimize weights of glue_layer
+                if self.glue_layer is not None:
+                    
+                    dream_outputs = outputs[batch_size//2:] # see create_data_and_targets method
+                    dream_targets_optimum = targets[:batch_size//2]
+                    loss_glue_layer = criterion_glue_layer(dream_outputs,dream_targets_optimum) # sliced output are discrim output on dream images, sliced targets are all ones
+                    loss_glue_layer.backward()
+                    optimizer_glue_layer.step()
+                    optimizer_glue_layer.zero_grad()
+                    
+                # measure training accuracy of discriminator and glue layer
+                discrim_training_acc_score_list = self.measure_accuracy(outputs,targets,loss_discrim,discrim_training_acc_score_list,"Discriminator")
+                if self.glue_layer is not None:
+                    glue_layer_training_acc_score_list = self.measure_accuracy(dream_outputs,dream_targets_optimum,loss_glue_layer,glue_layer_training_acc_score_list,"Glue_Layer")
         
 #             training_acc_avg = sum(training_acc_score_list)/len(training_acc_score_list)
 #             score_training_list.append(training_acc_avg)
@@ -411,8 +416,45 @@ class DeepDreamGAN(DeepDreamBatch):
             output_file = os.path.join("../models/","discriminator_1.pth")
         torch.save(self.discrim_net.state_dict(),output_file)
 
+    def check_batch_size(self,data,batch_size):
+        if len(data) < batch_size:
+            batch_size = len(data)
+            
+        return batch_size
 
- 
+    def create_data_and_targets(self,data,batch_size,static_train=False):
+        real_images, _ = data # extracted a batch of real images and label
+        random_seed = np.random.randint(1000)
+        print('Dreaming a batch..')
+        if static_train==True:
+            dream_images, _ = self.random_batch_dream(batch_size,random_seed) # create dream images from dreamer
+        else:
+            dream_images, _ = self.random_batch_dream_GAN(batch_size,random_seed) # create dream images adversarially from dreamer and discriminator
+        if self.glue_layer is not None: # pass the dream image through glue layer if it is available
+            dream_images,_ = self.glue_layer(dream_images)
+        print('Dream batch generated')    
+        # set up the targets
+        real_targets = torch.ones(batch_size)
+        dream_targets = torch.zeros(batch_size)
+        targets = torch.cat((real_targets,dream_targets))
+        targets = targets.type(torch.LongTensor)
+
+        # concat real and dream images and move batch to device
+        real_images = real_images.to(self.device)
+        images = torch.cat((real_images,dream_images),0)
+
+#                 images = images.to(device)
+        targets = targets.to(self.device)
+        return images, targets
+        
+    def measure_accuracy(self,outputs,targets,loss,training_acc_score_list,network_id):
+        preds = one_hot_to_argmax(outputs)
+        discrim_training_acc_score = skm.accuracy_score(targets.cpu().detach().numpy(),preds.cpu().detach().numpy())
+        training_acc_score_list.append(discrim_training_acc_score)
+        
+        print("{}   Loss : {}, Training accuracy : {}".format(network_id,loss,discrim_training_acc_score))
+        
+        return training_acc_score_list
         
 def main():
     network = DictNet(5)
