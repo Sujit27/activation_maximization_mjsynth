@@ -265,12 +265,12 @@ class DeepDreamBatch(DeepDream):
         
         return image_tensor
     
-    def show(self,image_tensor):
+    def show(self,image_tensor,image_name='batch_dream.png'):
         image_tensor = image_tensor.cpu() # back to host
         grid_img = utils.make_grid(image_tensor)
         plt.figure(num=None, figsize=(8, 6), dpi=80, facecolor='w', edgecolor='k')
         plt.imshow(np.transpose(grid_img.detach().numpy(),(1, 2, 0)))
-        plt.savefig("batch_dream.png")
+        plt.savefig(image_name)
 
         return grid_img
     

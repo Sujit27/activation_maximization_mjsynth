@@ -14,7 +14,7 @@ def convert_target(targets,labels_inv_dict):
     return output
 
 def label_to_word(label_num_list):
-    labels_dict = csv_to_dict("labels_full.csv")
+    labels_dict = csv_to_dict("../library/labels_full.csv")
     word_list = []
     for label_num in label_num_list:
         word_list.append(labels_dict[label_num][1])
