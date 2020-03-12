@@ -4,6 +4,8 @@ import ast
 
 
 def convert_target(targets,labels_inv_dict):
+    # converts targets from one given by getter of mjsynth dataset to one that
+    # can be used by the neural net
     targets = targets.tolist()
     output = torch.zeros(len(targets),dtype=torch.long)
     for index_target,target in enumerate(targets):
@@ -12,6 +14,32 @@ def convert_target(targets,labels_inv_dict):
                 output[index_target] = label_num
 
     return output
+
+def measure_accuracy(data,device,net,labels_inv_dict):
+    images, targets = data
+    targets = convert_target(targets,labels_inv_dict)
+   
+    images = images.to(device)
+    targets = targets.to(device)
+    
+    outputs = net(images)
+    
+    preds = one_hot_to_argmax(outputs)
+    acc_score = skm.accuracy_score(targets.cpu().detach().numpy(),preds.cpu().detach().numpy())
+
+    return acc_score
+
+
+def create_dicts(data_root,transform):
+    # create dictionaries from csv files present in the library
+    ds = dg.mjsynth.MjSynthWS(data_root,transform)
+    labels_and_indices_dict =  csv_to_dict('../library/labels_and_indices.csv')
+    labels_dict = csv_to_dict('../library/labels_1.csv')
+    labels_inv_dict = csv_to_dict('../library/labels_2.csv')
+
+    return ds, labels_and_indices_dict, labels_dict, labels_inv_dict
+
+
 
 def label_to_word(label_num_list):
     labels_dict = csv_to_dict("../library/labels_full.csv")

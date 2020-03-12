@@ -4,30 +4,39 @@ from dict_net import *
 from helper_functions import *
 import csv
 import os
+import argparse
+
+parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+
+parser.add_argument('-n',type=int,default = None, dest='num_labels',help='Store number of labels')
+parser.add_argument('-m',type=str,default = None, dest='existing_model_location',help='Full path of existing model')
+parser.add_argument('-g',type=bool,default = False, dest='grow_prev_model',help='Bool whether to grow the existing model')
+parser.add_argument('-o',type=str,default = "../models", dest='output_path',help='Output model location')
+parser.add_argument('-lr',type=float,default = 0.001, dest='lr',help='Learning rate')
+parser.add_argument('-ne',type=int,default = 30, dest='num_epochs',help='Number of epochs to train')
+parser.add_argument('--nice',type=bool,default = True, dest='nice',help='Bool whether to nice')
+
+
+cmd_args = parser.parse_args()
 
 
 
-def train_model(previously_trained,output_path,transform,prev_trained_model_name=None,num_labels=None,lr=0.005,batch_size=16,weight_decay=0.001,num_epochs=1):
+def train_model(grow_prev_model,output_path,transform,prev_trained_model_name=None,num_labels=None,lr=0.005,batch_size=16,weight_decay=0.001,num_epochs=1):
     
     # CUDA for PyTorch
     use_cuda = torch.cuda.is_available()
     device = torch.device("cuda:0" if use_cuda else "cpu")
-    #print("Device to be used {}".format(device))
 
-   
-#    if num_labels is None:
-#        num_labels = len(labels_list)
-
-    ds = dg.mjsynth.MjSynthWS('/var/tmp/on63ilaw/mjsynth/',transform)
-    labels_and_indices_dict =  csv_to_dict('../library/labels_and_indices.csv')
-    labels_dict = csv_to_dict('../library/labels_1.csv')
-    labels_inv_dict = csv_to_dict('../library/labels_2.csv')
+    data_root = '/var/tmp/on63ilaw/mjsynth/'
+    ds, labels_and_indices_dict, labels_dict, labels_inv_dict = create_dicts(data_root,transform)
 
     # create network with number of output nodes same as number of distinct labels
-    if previously_trained == False:
+    if grow_prev_model == False:
         net = DictNet(num_labels)
         # subset the dataset with desired number of samples per label
         ds = extract_dataset(ds,labels_and_indices_dict,labels_dict,num_labels,prev_num_labels=0)
+        if prev_trained_model_name is not None:
+            net.load_state_dict(torch.load(prev_trained_model_name))
  
     else:
         prev_num_labels = int(((os.path.basename(prev_trained_model_name)).split("_"))[1])
@@ -40,12 +49,8 @@ def train_model(previously_trained,output_path,transform,prev_trained_model_name
 
 
     net.to(device)
-    # create a list of labels
-    #labels_list = list(labels_indices_dict)
 
-    # create dataset
-    #ds = dg.mjsynth.MjSynthWS('/mnt/c/Users/User/Desktop/mjsynth/')
-
+    # splot training and validation data
     validation_split = 0.15
     dataset_size = len(ds)
     indices = list(range(dataset_size))
@@ -66,12 +71,11 @@ def train_model(previously_trained,output_path,transform,prev_trained_model_name
     # create a trainloader for the data subset
     trainloader = torch.utils.data.DataLoader(ds, batch_size=batch_size,sampler=train_sampler) 
     validationloader = torch.utils.data.DataLoader(ds, batch_size=batch_size,sampler=valid_sampler)
+
     #trainloader = torch.utils.data.DataLoader(ds,batch_size=batch_size,shuffle=True)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(net.parameters(), lr=lr, weight_decay=weight_decay)
     
-    disp_batch_num_training = 2
-    disp_batch_num_validation = 1
     score_training_list = []
     score_validation_list = []
     for epoch in range(num_epochs):
@@ -95,57 +99,19 @@ def train_model(previously_trained,output_path,transform,prev_trained_model_name
             loss.backward()
             optimizer.step()
             
-#            running_loss += loss.item()
-            if i % disp_batch_num_training == disp_batch_num_training-1:    # print every 50 mini-batches
-#                print('[%d, %5d] training loss: %.3f' %
-#                      (epoch + 1, i + 1, running_loss / disp_batch_num_training))
-#                running_loss = 0.0
-#            
-                net.eval()
-                with torch.no_grad():
-                    images, targets = data
-                    targets = convert_target(targets,labels_inv_dict)
-                   
-                    images = images.to(device)
-                    targets = targets.to(device)
-                    
-                    outputs = net(images)
-                    
-                    preds = one_hot_to_argmax(outputs)
-                    training_acc_score = skm.accuracy_score(targets.cpu().detach().numpy(),preds.cpu().detach().numpy())
-                    training_acc_score_list.append(training_acc_score)
+            # evaluate training data
+            net.eval()
+            with torch.no_grad():
+                training_acc_score_list.append(measure_accuracy(data,device,net,labels_inv_dict))
 
 #                    print("training accuracy_score : {}".format(training_acc_score))
-                net.train()
-        # break
-#        if len(acc_score_list) > accuracy_num:
-#            acc_last_n = acc_score_list[-accuracy_num:]
-#            last_n_avg = sum(acc_last_n)/len(acc_last_n)
-#            if last_n_avg > 0.9999999999:
-#                break
-#        if epoch % 20 == 19: 
-#            saved_model_name = "checkpoint_"+str(num_labels) + "_"+str(num_samples_per_label)+"_"+str(epoch)+".pth"
-#            torch.save({'model_state_dict':net.state_dict(),'optimizer_state_dict':optimizer.state_dict()},saved_model_name)
+            net.train()
+        
+        # evaluate validation data
         net.eval()
         for j, data in enumerate(validationloader,0):
             with torch.no_grad():
-                images, targets = data
-                targets = convert_target(targets,labels_inv_dict)
-
-                images = images.to(device)
-                targets = targets.to(device)
-                
-                outputs = net(images)
-                loss = criterion(outputs, targets)
-                
-                #validation_loss += loss.item()
-                preds = one_hot_to_argmax(outputs)
-                validation_acc_score = skm.accuracy_score(targets.cpu().detach().numpy(),preds.cpu().detach().numpy())                
-                if i % disp_batch_num_validation == disp_batch_num_validation-1:    # print every 50 mini-batches
-                    #                    print('[%d, %5d] validation loss: %.3f  validation accuracy score: %.3f' %
-                    #                          (epoch + 1, j + 1, validation_loss / disp_batch_num_validation, validation_acc_score))
-                    #                    validation_loss = 0.0
-                    validation_acc_score_list.append(validation_acc_score)
+                validation_acc_score_list.append(measure_accuracy(data,device,net,labels_inv_dict))
 
         training_acc_avg = sum(training_acc_score_list)/len(training_acc_score_list)
         validation_acc_avg = sum(validation_acc_score_list)/len(validation_acc_score_list)
@@ -166,53 +132,48 @@ def train_model(previously_trained,output_path,transform,prev_trained_model_name
 def main():
     # Can either train a model from start given the number of labels :$ python3 train.py 500
     # Or can grow an existing trained model ( see ../library/dict_net.py for more details ) by increasing the number of labels to a specified number :$ python3 train.py 1000 ../models/net_###.pth
-    if len(sys.argv) < 2:
-        print(len(sys.argv))
-        print("Add the number of labels as a command line arguement, see description above")
-        return 1
-    num_labels = int(sys.argv[1])
-    previously_trained = False
-    prev_trained_model_name = None
+    num_labels = cmd_args.num_labels
+    prev_trained_model_name = cmd_args.existing_model_location
+    grow_prev_model = cmd_args.grow_prev_model
+    output_path = cmd_args.output_path
+    lr = cmd_args.lr
+    num_epochs = cmd_args.num_epochs
+    nice = cmd_args.nice
+
     prev_num_labels = None
-    if len(sys.argv) == 3:
-        prev_trained_model_name = sys.argv[2]
+    if prev_trained_model_name is not None:
         prev_num_labels = int(((os.path.basename(prev_trained_model_name)).split("_"))[1])
-        if os.path.exists(prev_trained_model_name) and prev_num_labels <= num_labels:
-            previously_trained = True
-            
+        if prev_num_labels > num_labels:
+            print("Number of labels requested is lesser than the number of labels in the previously trained model. Qutting ...")
+            return
+        if grow_prev_model:
+            if prev_num_labels > num_labels:
+                print("Number of labels requested is lesser than the number of labels in the previously trained model.Cannot grow. Qutting ...")
+                return
 
-    os.nice(20)
-    output_path = "../models"
-    #num_labels_list = [100,500,1000,2000]
-    #num_labels_list = [500,1000]
-    lrs = [0.001]#[0.001,0.005,0.01]
-    weight_decays = [0.00]
-    #batch_sizes = [64]
-    num_epochs = 10
+    if nice is True : 
+        os.nice(20)
+
+    weight_decay = 0.00
     transform = dg.mjsynth.mjsynth_gray_scale
-    #for num_labels in num_labels_list:
-        #for batch_size in batch_sizes:
-    for weight_decay in weight_decays:
-        for lr in lrs:
-            #print("#####")
-            # from the jaderg paper " SGD batch_size should be at leastone fiftth of the number of classes
-            if previously_trained:
-                batch_size = int((num_labels-prev_num_labels)/5)
-            else:
-                batch_size = int(num_labels/5) 
             
-            # train
-            score_training_list,score_validation_list = train_model(previously_trained,output_path,transform,prev_trained_model_name=prev_trained_model_name,num_labels=num_labels,lr = lr,batch_size=batch_size,weight_decay=weight_decay,num_epochs=num_epochs)
-            
-            # save csv
-            file_name = "result_"+ str(num_labels) + "_l"+str(lr)+"_b"+str(batch_size)+"_w"+str(weight_decay)+".csv"
-            output_csv = os.path.join(output_path,file_name)
-            with open(output_csv,'w') as f:
-                writer = csv.writer(f)
-                writer.writerows(zip(score_training_list,score_validation_list))
+    if grow_prev_model:
+        batch_size = int((num_labels-prev_num_labels)/5)
+    else:
+        batch_size = int(num_labels/5) 
+    
+    # train
+    score_training_list,score_validation_list = train_model(grow_prev_model,output_path,transform,prev_trained_model_name=prev_trained_model_name,num_labels=num_labels,lr = lr,batch_size=batch_size,weight_decay=weight_decay,num_epochs=num_epochs)
+    
+    # save csv
+    file_name = "result_"+ str(num_labels) + "_l"+str(lr)+"_b"+str(batch_size)+"_w"+str(weight_decay)+".csv"
+    output_csv = os.path.join(output_path,file_name)
+    with open(output_csv,'w') as f:
+        writer = csv.writer(f)
+        writer.writerows(zip(score_training_list,score_validation_list))
 
-            print("Result saved : {}".format(output_csv))
-            
+    print("Result saved : {}".format(output_csv))
+    
             
                 
 if __name__ == "__main__":
