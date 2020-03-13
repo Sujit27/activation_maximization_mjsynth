@@ -89,8 +89,8 @@ class DeepDream():
 
         softmaxed_activation = F.softmax(self.net(im),dim=1)
         val,index = softmaxed_activation.max(1)
-        print("Probablity before optimizing : {} and label {}".format(val[0],index[0]))
-        print("Dreaming...")
+        #print("Probablity before optimizing : {} and label {}".format(val[0],index[0]))
+        #print("Dreaming...")
 
         for i in range(nItr):
 
@@ -111,10 +111,10 @@ class DeepDream():
         
         softmaxed_activation = F.softmax(self.net(im),dim=1)
         val,index = softmaxed_activation.max(1)
-        print("Probablity after optimizing : {} and label {}".format(val[0],index[0]))
+        #print("Probablity after optimizing : {} and label {}".format(val[0],index[0]))
 
         #return im,val,index
-        return im
+        return im,val
 
 
     def createInputImage(self,random_seed):
@@ -459,7 +459,7 @@ class DeepDreamGAN(DeepDreamBatch):
 def main():
     network = DictNet(5)
     dreamer = DeepDream(network,(1,32,128),(0.47,),(0.14,),use_gaussian_filter=True)
-    dream = dreamer(label=1,nItr=500)  
+    dream,val = dreamer(label=1,nItr=500)  
     output = dreamer.postProcess(dream)
     dreamer.save(output,"dream_image.png") # saves image
 

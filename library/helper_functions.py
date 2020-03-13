@@ -142,32 +142,4 @@ def literal_to_dict(lit_dict):
 
     return dictionary
 
-def main():
-    ds = dg.mjsynth.MjSynthWS('/var/tmp/on63ilaw/mjsynth/',dg.mjsynth.mjsynth_gray_scale)
-    labels_indices_dict, _ = subset_dataset(ds)
-    csv_file_name1 = 'labels_and_indices.csv'
-    dict_to_csv(labels_indices_dict,csv_file_name1)
-
-    print("Labels and indices csv file saved")
-
-    labels_list = list(labels_indices_dict)
-    labels_map_full = {}
-    labels_map1 = {}
-    labels_map2 = {}
-    for index,value in enumerate(labels_list):
-        labels_map_full[index] = value
-        labels_map1[index] = value[0]
-        labels_map2[value[0]] = index
-
-    csv_file_name2 = 'labels_full.csv'
-    csv_file_name3 = 'labels_1.csv'
-    csv_file_name4 = 'labels_2.csv'
-    dict_to_csv(labels_map_full,csv_file_name2)
-    dict_to_csv(labels_map1,csv_file_name3)
-    dict_to_csv(labels_map2,csv_file_name4)
-    print("Labels files saved")
- 
-
-if __name__ == "__main__":
-    main()
         
