@@ -42,9 +42,7 @@ def main():
         words = label_to_word(labels)
         name = "_".join(elem for elem in words) + str(random_seed) + ".png"
         name = os.path.join(output_path,name)
-        im = dreamer.show(im,name)
-        plt.clf()
-        plt.close()
+        dreamer.show(im,name)
         if i%100 == 99 :
             print('{} dreams created'.format(i))
     stop = timer()

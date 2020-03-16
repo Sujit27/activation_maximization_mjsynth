@@ -1,7 +1,10 @@
 import sys
 sys.path.append("../library/")
+import dagtasets as dg
 from dict_net import *
 from helper_functions import *
+from torch.utils.data  import SubsetRandomSampler
+from torch import optim
 import csv
 import os
 import argparse
@@ -12,6 +15,7 @@ parser.add_argument('-n',type=int,default = None, dest='num_labels',help='Store 
 parser.add_argument('-m',type=str,default = None, dest='existing_model_location',help='Full path of existing model')
 parser.add_argument('-g',type=bool,default = False, dest='grow_prev_model',help='Bool whether to grow the existing model')
 parser.add_argument('-o',type=str,default = "../models", dest='output_path',help='Output model location')
+parser.add_argument('-d',type=str,default = "/var/tmp/on63ilaw/mjsynth/", dest='data_root',help='input data location')
 parser.add_argument('-lr',type=float,default = 0.001, dest='lr',help='Learning rate')
 parser.add_argument('-ne',type=int,default = 30, dest='num_epochs',help='Number of epochs to train')
 parser.add_argument('--nice',type=bool,default = True, dest='nice',help='Bool whether to nice')
@@ -21,13 +25,12 @@ cmd_args = parser.parse_args()
 
 
 
-def train_model(grow_prev_model,output_path,transform,prev_trained_model_name=None,num_labels=None,lr=0.005,batch_size=16,weight_decay=0.001,num_epochs=1):
+def train_model(grow_prev_model,output_path,data_root,transform,prev_trained_model_name=None,num_labels=None,lr=0.005,batch_size=16,weight_decay=0.001,num_epochs=1):
     
     # CUDA for PyTorch
     use_cuda = torch.cuda.is_available()
     device = torch.device("cuda:0" if use_cuda else "cpu")
 
-    data_root = '/var/tmp/on63ilaw/mjsynth/'
     ds, labels_and_indices_dict, labels_dict, labels_inv_dict = create_dicts(data_root,transform)
 
     # create network with number of output nodes same as number of distinct labels
@@ -136,6 +139,7 @@ def main():
     prev_trained_model_name = cmd_args.existing_model_location
     grow_prev_model = cmd_args.grow_prev_model
     output_path = cmd_args.output_path
+    data_root = cmd_args.data_root
     lr = cmd_args.lr
     num_epochs = cmd_args.num_epochs
     nice = cmd_args.nice
@@ -161,9 +165,9 @@ def main():
         batch_size = int((num_labels-prev_num_labels)/5)
     else:
         batch_size = int(num_labels/5) 
-    
+    batch_size = min(batch_size,256)
     # train
-    score_training_list,score_validation_list = train_model(grow_prev_model,output_path,transform,prev_trained_model_name=prev_trained_model_name,num_labels=num_labels,lr = lr,batch_size=batch_size,weight_decay=weight_decay,num_epochs=num_epochs)
+    score_training_list,score_validation_list = train_model(grow_prev_model,output_path,data_root,transform,prev_trained_model_name=prev_trained_model_name,num_labels=num_labels,lr = lr,batch_size=batch_size,weight_decay=weight_decay,num_epochs=num_epochs)
     
     # save csv
     file_name = "result_"+ str(num_labels) + "_l"+str(lr)+"_b"+str(batch_size)+"_w"+str(weight_decay)+".csv"

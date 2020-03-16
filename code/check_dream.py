@@ -10,8 +10,7 @@ parser.add_argument('-m',type=str,default = '../models/net_1000_0.001_200_0.0.pt
 parser.add_argument('-l',type=int,default = 1, dest='label',help='Label to dream')
 parser.add_argument('-r',type=int,default = 0, dest='random_seed',help='Random seed for creating the starting image for dreaming')
 parser.add_argument('-itr',type=int,default = 500, dest='nItr',help='Number of iterations on dreaming')
-parser.add_argument('-lr',type=float,default = 0.001, dest='lr',help='Learning rate')
-parser.add_argument('-o',type=str,default = "../dreams/", dest='output_path',help='dream output location')
+parser.add_argument('-lr',type=float,default = 0.1, dest='lr',help='Learning rate')
 
 
 cmd_args = parser.parse_args()
@@ -39,7 +38,6 @@ def main():
     random_seed = cmd_args.random_seed
     nItr = cmd_args.nItr
     lr = cmd_args.lr
-    output_path = cmd_args.output_path
 
     filename = os.path.basename(trained_model)
     num_labels = int(filename.split('_')[1])
@@ -55,8 +53,7 @@ def main():
     dream_im,val = dreamer(label=label,nItr=nItr,lr=lr,random_seed=random_seed)
     dream_im = dreamer.postProcess(dream_im)
     
-    out_im_name = output_path+"dream_"+str(filename)+"_"+str(label)+"_"+str(nItr)+"_"+str(lr)+"_"+str(random_seed)+".png"
-    dreamer.save(dream_im,out_im_name)
+    dreamer.save(dream_im,"dream.png")
 
 if __name__ == "__main__":
     main()

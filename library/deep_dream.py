@@ -15,6 +15,7 @@ import math
 import os
 import random
 from dict_net import *
+from discrim_net import *
 from helper_functions import *
 
 # Created by Sujit Sahoo, 13 Feb 2020
@@ -89,8 +90,8 @@ class DeepDream():
 
         softmaxed_activation = F.softmax(self.net(im),dim=1)
         val,index = softmaxed_activation.max(1)
-        #print("Probablity before optimizing : {} and label {}".format(val[0],index[0]))
-        #print("Dreaming...")
+        print("Probablity before optimizing : {} and label {}".format(val[0],index[0]))
+        print("Dreaming...")
 
         for i in range(nItr):
 
@@ -111,7 +112,7 @@ class DeepDream():
         
         softmaxed_activation = F.softmax(self.net(im),dim=1)
         val,index = softmaxed_activation.max(1)
-        #print("Probablity after optimizing : {} and label {}".format(val[0],index[0]))
+        print("Probablity after optimizing : {} and label {}".format(val[0],index[0]))
 
         #return im,val,index
         return im,val
@@ -267,13 +268,8 @@ class DeepDreamBatch(DeepDream):
     
     def show(self,image_tensor,image_name='batch_dream.png'):
         image_tensor = image_tensor.cpu() # back to host
-        grid_img = utils.make_grid(image_tensor)
-        plt.figure(num=None, figsize=(8, 6), dpi=80, facecolor='w', edgecolor='k')
-        plt.imshow(np.transpose(grid_img.detach().numpy(),(1, 2, 0)))
-        plt.savefig(image_name)
+        utils.save_image(image_tensor,image_name)
 
-        return grid_img
-    
     
 class DeepDreamGAN(DeepDreamBatch):
     '''
@@ -306,7 +302,7 @@ class DeepDreamGAN(DeepDreamBatch):
         self.discrim_net.to(self.device)
         
     def reinit_discrim_net(self):
-        self.discrim_net = DictNet(2)
+        self.discrim_net = DiscrimNet(2)
         self.discrim_net.to(self.device)
         print("Discriminator re-initialized")
         
@@ -361,19 +357,18 @@ class DeepDreamGAN(DeepDreamBatch):
 
         return im
                 
-    def train_model(self,dataset_real,num_epochs=1,lr=0.001,batch_size=64,static_train=True,training_acc_threshold=None):
+    def train_model(self,dataset_real,num_epochs=1,lr=0.001,batch_size=64,training_acc_threshold=None,discrim_sav_file="../models/discrim.pth",glue_sav_file="../models/glue_layer.pth"):
         # the discriminator is trained with mixtur of real and dream images till training accuracy threshold is exceeded
-        # if static_train is false, the dreams that are created during training for classification are adverserially created dreams. Takes musch more time
 
         trainloader = torch.utils.data.DataLoader(dataset_real, batch_size=batch_size,shuffle=True) 
         # set loss criterion and optimizer for discriminator
         criterion_discrim = nn.CrossEntropyLoss()
-        optimizer_discrim = optim.Adam(self.discrim_net.parameters(), lr=lr)
+        optimizer_discrim = torch.optim.Adam(self.discrim_net.parameters(), lr=lr)
         
         # set loss criterion and optimizer for glue_layer
         if self.glue_layer is not None:
             criterion_glue_layer = nn.CrossEntropyLoss()
-            optimizer_glue_layer = optim.Adam(self.glue_layer.parameters(), lr=lr)
+            optimizer_glue_layer = torch.optim.Adam(self.glue_layer.parameters(), lr=lr)
 
         #score_training_list = []
         for epoch in range(num_epochs):
@@ -382,7 +377,7 @@ class DeepDreamGAN(DeepDreamBatch):
             glue_layer_training_acc_score_list = []
             for i,data in enumerate(trainloader,0):
                 #batch_size = self.check_batch_size(data,batch_size) # checks if data available is equal to batch_size
-                images,targets = self.create_data_and_targets(data,batch_size,static_train)                
+                images,targets = self.create_data_and_targets(data,batch_size)                
                     
                 # optimize weights of discriminator
                 optimizer_discrim.zero_grad()
@@ -391,30 +386,28 @@ class DeepDreamGAN(DeepDreamBatch):
                 loss_discrim = criterion_discrim(outputs, targets)
                 loss_discrim.backward()
                 optimizer_discrim.step()
+
+                print("Discriminator loss : ",loss_discrim)
                 
                 # optimize weights of glue_layer
                 if self.glue_layer is not None:
                     
+                    optimizer_glue_layer.zero_grad()
                     dream_outputs = outputs[batch_size//2:] # see create_data_and_targets method
                     dream_targets_optimum = targets[:batch_size//2]
                     loss_glue_layer = criterion_glue_layer(dream_outputs,dream_targets_optimum) # sliced output are discrim output on dream images, sliced targets are all ones
                     loss_glue_layer.backward()
                     optimizer_glue_layer.step()
-                    optimizer_glue_layer.zero_grad()
+                    print("Glue layer loss : ",loss_glue_layer)
                     
                 # measure training accuracy of discriminator and glue layer
                 discrim_training_acc_score_list = self.measure_accuracy(outputs,targets,loss_discrim,discrim_training_acc_score_list,"Discriminator")
                 if self.glue_layer is not None:
                     glue_layer_training_acc_score_list = self.measure_accuracy(dream_outputs,dream_targets_optimum,loss_glue_layer,glue_layer_training_acc_score_list,"Glue_Layer")
         
-#             training_acc_avg = sum(training_acc_score_list)/len(training_acc_score_list)
-#             score_training_list.append(training_acc_avg)
-#             print("{},{},{}".format(epoch,random_seed,training_acc_avg))
-        if static_train == True:
-            output_file = os.path.join("../models/","discriminator_0.pth")
-        else:
-            output_file = os.path.join("../models/","discriminator_1.pth")
-        torch.save(self.discrim_net.state_dict(),output_file)
+        torch.save(self.discrim_net.state_dict(),discrim_sav_file)
+        if self.glue_layer is not None:
+            torch.save(self.glue_layer.state_dict(),glue_sav_file)
 
     def check_batch_size(self,data,batch_size):
         if len(data) < batch_size:
@@ -422,14 +415,11 @@ class DeepDreamGAN(DeepDreamBatch):
             
         return batch_size
 
-    def create_data_and_targets(self,data,batch_size,static_train=False):
+    def create_data_and_targets(self,data,batch_size):
         real_images, _ = data # extracted a batch of real images and label
         random_seed = np.random.randint(1000)
         print('Dreaming a batch..')
-        if static_train==True:
-            dream_images, _ = self.random_batch_dream(batch_size,random_seed) # create dream images from dreamer
-        else:
-            dream_images, _ = self.random_batch_dream_GAN(batch_size,random_seed) # create dream images adversarially from dreamer and discriminator
+        dream_images, _ = self.random_batch_dream_GAN(batch_size,random_seed) # create dream images adversarially from dreamer and discriminator
         if self.glue_layer is not None: # pass the dream image through glue layer if it is available
             dream_images,_ = self.glue_layer(dream_images)
         print('Dream batch generated')    
