@@ -18,7 +18,7 @@ def extract_name(file_list):
 if __name__=='__main__':
     parser = argparse.ArgumentParser(
         description='Arrange a number of images as a matrix.')
-    #parser.add_argument('f', help='Output filename.')
+    parser.add_argument('f', help='Output filename.')
     parser.add_argument('w', type=int,
                         help='Width of the matrix (number of images).')
     parser.add_argument('h', type=int,
@@ -70,6 +70,6 @@ if __name__=='__main__':
         y = y_i * (img_h + m_y)
         imgmatrix[y:y+img_h, x:x+img_w, :] = img
 
-    output_file_name = extract_name(args.img)
-    #cv2.imwrite(args.f, imgmatrix)    
-    cv2.imwrite(output_file_name, imgmatrix)    
+    #output_file_name = extract_name(args.img)
+    cv2.imwrite(args.f, imgmatrix)    
+    #cv2.imwrite(output_file_name, imgmatrix)    

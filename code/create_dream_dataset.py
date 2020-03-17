@@ -1,14 +1,8 @@
 import sys
 sys.path.append("../library")
-from PIL import Image
-import numpy as np
-import torch
-from torchvision import transforms
-import matplotlib.pyplot as plt
 from dict_net import *
 from deep_dream import *
 from helper_functions import *
-from glue_layers import *
 import torchvision
 from timeit import default_timer as timer
 import argparse
