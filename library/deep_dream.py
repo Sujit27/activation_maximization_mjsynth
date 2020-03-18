@@ -325,7 +325,7 @@ class DeepDreamGAN(DeepDreamBatch):
         for _ in range(n_adv_loops):            
             im = self.batch_dream_kernel(im,labels,nItr_g,lr_g)
             if self.glue_layer is not None:
-                im,_ = self.glue_layer(im)
+                im = self.glue_layer(im)
                 im = Variable(im,requires_grad=True) # create a variable out of the output of the glue layer
             im = self.batch_discrim_kernel(im,labels,nItr_d,lr_d)
             
