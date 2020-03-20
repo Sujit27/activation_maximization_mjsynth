@@ -4,7 +4,7 @@ import torch.nn as nn
 
 class DiscrimNet(nn.Module):
     # DictNet for images with size 32x256, padding transform
-    def __init__(self, num_classes=772, conv_capacity=16, fc_capacity=128):
+    def __init__(self, num_classes=2, conv_capacity=16, fc_capacity=128):
         super().__init__()
         self.cnn_layers = nn.Sequential(
             # 1st conv layer
@@ -22,14 +22,14 @@ class DiscrimNet(nn.Module):
 
         
         self.final_layer = nn.Linear(fc_capacity*32, num_classes)
-        #self.softmax = nn.Softmax(dim=1)
+        self.softmax = nn.Softmax(dim=1)
         
     def forward(self, x):
         out = self.cnn_layers(x)
         out = out.reshape(out.size(0), -1)
         out = self.fc_layers(out)
         out = self.final_layer(out)
-        #out = self.softmax(out)
+        out = self.softmax(out)
         return out
  
 #Discriminator for SRGAN with 1 channel input 

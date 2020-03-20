@@ -46,22 +46,22 @@ class DeepDream():
         self.setNetwork()
         self.check_input()
         if self.use_gaussian_filter == True:
-            print("Gaussian filter will be used")
+            #print("Gaussian filter will be used")
             self.gaussian_filter = None
             self.setGaussianFilter()
 
     def setDevice(self):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        print("Device used to run this program: ",self.device)
+        #print("Device used to run this program: ",self.device)
 
 
     def setNetwork(self):
-        print("Loading the network...")
+        #print("Loading the network...")
         
         self.net.eval() # inference mode
 
         self.net.to(self.device)
-        print("Network Loaded")
+        #print("Network Loaded")
         
     def check_input(self):
         assert len(self.input_size) == 3
@@ -290,7 +290,7 @@ class DeepDreamGAN(DeepDreamBatch):
             #self.discrim_net = DictNet(2)
             #print("Discriminator initialized with DictNet with 2 final outputs")
             self.discrim_net = DiscrimNet(2)
-            print("Discriminator initialized with DiscrimNet with 2 final outputs")
+            #print("Discriminator initialized with DiscrimNet with 2 final outputs")
 
         else:
             num_final_output = self.discrim_net.final_layer.weight.shape[0]
@@ -349,15 +349,15 @@ class DeepDreamGAN(DeepDreamBatch):
             im.data += norm_lr * im.grad.data
             im.data = torch.clamp(im.data,-1,1)
             
-            if self.use_gaussian_filter == True:
-                im.data = self.gaussian_filter(im.data)
+            #if self.use_gaussian_filter == True:
+            #    im.data = self.gaussian_filter(im.data)
 
             im.grad.data.zero_()
                 
 
         return im
                 
-    def train_model(self,dataset_real,num_epochs=1,lr=0.001,batch_size=64,training_acc_threshold=None,discrim_sav_file="../models/discrim.pth",glue_sav_file="../models/glue_layer.pth"):
+    def train_model(self,dataset_real,num_epochs=1,lr=0.001,batch_size=64,stop_training_batch_num=None,discrim_sav_file="../models/discrim.pth",glue_sav_file="../models/glue_layer.pth"):
         # the discriminator is trained with mixtur of real and dream images till training accuracy threshold is exceeded
 
         trainloader = torch.utils.data.DataLoader(dataset_real, batch_size=batch_size,shuffle=True) 
@@ -374,7 +374,7 @@ class DeepDreamGAN(DeepDreamBatch):
         for epoch in range(num_epochs):
             self.discrim_net.train()
             discrim_training_acc_score_list = []
-            glue_layer_training_acc_score_list = []
+            #glue_layer_training_acc_score_list = []
             for i,data in enumerate(trainloader,0):
                 #batch_size = self.check_batch_size(data,batch_size) # checks if data available is equal to batch_size
                 images,targets = self.create_data_and_targets(data,batch_size)                
@@ -387,7 +387,7 @@ class DeepDreamGAN(DeepDreamBatch):
                 loss_discrim.backward()
                 optimizer_discrim.step()
 
-                print("Discriminator loss : ",loss_discrim)
+                #print("Discriminator loss : ",loss_discrim.item())
                 
                 # optimize weights of glue_layer
                 if self.glue_layer is not None:
@@ -401,13 +401,18 @@ class DeepDreamGAN(DeepDreamBatch):
                     print("Glue layer loss : ",loss_glue_layer)
                     
                 # measure training accuracy of discriminator and glue layer
-                discrim_training_acc_score_list = self.measure_accuracy(outputs,targets,loss_discrim,discrim_training_acc_score_list,"Discriminator")
-                if self.glue_layer is not None:
-                    glue_layer_training_acc_score_list = self.measure_accuracy(dream_outputs,dream_targets_optimum,loss_glue_layer,glue_layer_training_acc_score_list,"Glue_Layer")
-        
-        torch.save(self.discrim_net.state_dict(),discrim_sav_file)
-        if self.glue_layer is not None:
-            torch.save(self.glue_layer.state_dict(),glue_sav_file)
+                discrim_training_acc_score_list.append(self.measure_accuracy(outputs,targets,loss_discrim,"Discriminator"))
+                if i == stop_training_batch_num:
+                    break
+
+#                if self.glue_layer is not None:
+#                    glue_layer_training_acc_score_list = self.measure_accuracy(dream_outputs,dream_targets_optimum,loss_glue_layer,glue_layer_training_acc_score_list,"Glue_Layer")
+#        
+#        torch.save(self.discrim_net.state_dict(),discrim_sav_file)
+#        if self.glue_layer is not None:
+#            torch.save(self.glue_layer.state_dict(),glue_sav_file)
+                if i == stop_training_batch_num:
+                    break
 
     def check_batch_size(self,data,batch_size):
         if len(data) < batch_size:
@@ -418,11 +423,11 @@ class DeepDreamGAN(DeepDreamBatch):
     def create_data_and_targets(self,data,batch_size):
         real_images, _ = data # extracted a batch of real images and label
         random_seed = np.random.randint(1000)
-        print('Dreaming a batch..')
+        #print('Dreaming a batch..')
         dream_images, _ = self.random_batch_dream_GAN(batch_size,random_seed) # create dream images adversarially from dreamer and discriminator
         if self.glue_layer is not None: # pass the dream image through glue layer if it is available
-            dream_images,_ = self.glue_layer(dream_images)
-        print('Dream batch generated')    
+            dream_images = self.glue_layer(dream_images)
+        #print('Dream batch generated')    
         # set up the targets
         real_targets = torch.ones(batch_size)
         dream_targets = torch.zeros(batch_size)
@@ -437,14 +442,13 @@ class DeepDreamGAN(DeepDreamBatch):
         targets = targets.to(self.device)
         return images, targets
         
-    def measure_accuracy(self,outputs,targets,loss,training_acc_score_list,network_id):
+    def measure_accuracy(self,outputs,targets,loss,network_id):
         preds = one_hot_to_argmax(outputs)
-        discrim_training_acc_score = skm.accuracy_score(targets.cpu().detach().numpy(),preds.cpu().detach().numpy())
-        training_acc_score_list.append(discrim_training_acc_score)
+        training_acc_score = skm.accuracy_score(targets.cpu().detach().numpy(),preds.cpu().detach().numpy())
         
-        print("{}   Loss : {}, Training accuracy : {}".format(network_id,loss,discrim_training_acc_score))
+        print("{}, {}, {}".format(network_id,loss,training_acc_score))
         
-        return training_acc_score_list
+        return training_acc_score
         
 def main():
     network = DictNet(5)
