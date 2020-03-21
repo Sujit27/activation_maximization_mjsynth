@@ -41,7 +41,7 @@ def main():
         glue_net = None
 
     #Initialize dreamer
-    dreamer = DeepDreamGAN(net,(1,32,128),(0.47,),(0.14,),use_gaussian_filter=True,glue_layer=glue_net)
+    dreamer = DeepDreamGAN(net,(1,32,128),(0.47,),(0.14,),use_gaussian_filter=True,glue_layer=glue_net,discrim_net_use_gaussian_filter=False)
 
     #set dataset
     transform = dg.mjsynth.mjsynth_gray_scale

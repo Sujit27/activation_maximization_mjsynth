@@ -276,12 +276,13 @@ class DeepDreamGAN(DeepDreamBatch):
     Given a network for dreaming, input size to the network and channel wise mean,std of the data it was trained on and another
     network to act as adversarial discriminator between real and dream,label specific 'deep dream' images can be created
     '''
-    def __init__(self,net,input_size,data_mean=None,data_std=None,use_gaussian_filter=False,discrim_net=None,glue_layer=None):
+    def __init__(self,net,input_size,data_mean=None,data_std=None,use_gaussian_filter=False,discrim_net=None,discrim_net_use_gaussian_filter=True,glue_layer=None):
         
         super().__init__(net,input_size,data_mean,data_std,use_gaussian_filter)
         self.discrim_net = discrim_net
         self.set_discrim_net()
         self.glue_layer = glue_layer
+        self.discrim_net_use_gaussian_filter=discrim_net_use_gaussian_filter
         if self.glue_layer is not None:
             self.glue_layer.to(self.device)
         
@@ -349,8 +350,8 @@ class DeepDreamGAN(DeepDreamBatch):
             im.data += norm_lr * im.grad.data
             im.data = torch.clamp(im.data,-1,1)
             
-            #if self.use_gaussian_filter == True:
-            #    im.data = self.gaussian_filter(im.data)
+            if self.discrim_net_use_gaussian_filter == True:
+                im.data = self.gaussian_filter(im.data)
 
             im.grad.data.zero_()
                 
@@ -408,11 +409,9 @@ class DeepDreamGAN(DeepDreamBatch):
 #                if self.glue_layer is not None:
 #                    glue_layer_training_acc_score_list = self.measure_accuracy(dream_outputs,dream_targets_optimum,loss_glue_layer,glue_layer_training_acc_score_list,"Glue_Layer")
 #        
-#        torch.save(self.discrim_net.state_dict(),discrim_sav_file)
+        torch.save(self.discrim_net.state_dict(),discrim_sav_file)
 #        if self.glue_layer is not None:
 #            torch.save(self.glue_layer.state_dict(),glue_sav_file)
-                if i == stop_training_batch_num:
-                    break
 
     def check_batch_size(self,data,batch_size):
         if len(data) < batch_size:
