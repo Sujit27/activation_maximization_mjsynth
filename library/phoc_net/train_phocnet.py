@@ -2,22 +2,25 @@ import argparse
 import logging
 
 import numpy as np
+from sklearn.metrics import accuracy_score
 import torch.autograd
 import torch.cuda
 import torch.nn as nn
 import torch.optim
 from torch.utils.data import DataLoader
+from torch.utils.data  import SubsetRandomSampler
 import tqdm
 
 import copy
 from phoc_dataset import *
 from cosine_loss import *
 from phoc_net import *
-from torch.utils.data.dataloader import DataLoaderIter
+from retrieval import *
 
 
-def learning_rate_step_parser(lrs_string):
-    return [(int(elem.split(':')[0]), float(elem.split(':')[1])) for elem in lrs_string.split(',')]
+# CUDA for PyTorch
+use_cuda = torch.cuda.is_available()
+device = torch.device("cuda:0" if use_cuda else "cpu")
 
 def train():
     logger = logging.getLogger('PHOCNet-Experiment::train')
@@ -25,9 +28,11 @@ def train():
     # argument parsing
     parser = argparse.ArgumentParser()    
     # - train arguments
-    parser.add_argument('--learning_rate_step', '-lrs', type=learning_rate_step_parser, default='60000:1e-4,100000:1e-5',
-                        help='A dictionary-like string indicating the learning rate for up to the number of iterations. ' +
-                             'E.g. the default \'70000:1e-4,80000:1e-5\' means learning rate 1e-4 up to step 70000 and 1e-5 till 80000.')
+    parser.add_argument('--num_epochs', '-ep', action='store', type=int, default=30,
+                        help='Number of epochs for training. Default: 30')
+
+    parser.add_argument('--learning_rate', '-lr',action='store',type=float, default=0.0005,
+            help='Learning rate for training. Default: 0.0005')
     parser.add_argument('--momentum', '-mom', action='store', type=float, default=0.9,
                         help='The momentum for SGD training (or beta1 for Adam). Default: 0.9')
     parser.add_argument('--momentum2', '-mom2', action='store', type=float, default=0.999,
@@ -36,16 +41,14 @@ def train():
                         help='Epsilon if solver is Adam. Default: 1e-8')
     parser.add_argument('--solver_type', '-st', choices=['SGD', 'Adam'], default='Adam',
                         help='Which solver type to use. Possible: SGD, Adam. Default: Adam')
-    parser.add_argument('--display', action='store', type=int, default=500,
-                        help='The number of iterations after which to display the loss values. Default: 100')
-    parser.add_argument('--test_interval', action='store', type=int, default=2000,
-                        help='The number of iterations after which to periodically evaluate the PHOCNet. Default: 500')
-    parser.add_argument('--iter_size', '-is', action='store', type=int, default=10,
-                        help='The batch size after which the gradient is computed. Default: 10')
-    parser.add_argument('--batch_size', '-bs', action='store', type=int, default=1,
-                        help='The batch size after which the gradient is computed. Default: 1')
-    parser.add_argument('--weight_decay', '-wd', action='store', type=float, default=0.00005,
-                        help='The weight decay for SGD training. Default: 0.00005')
+    parser.add_argument('--display', action='store', type=int, default=10,
+                        help='The number of batches after which to display the loss values. Default: 10')
+    parser.add_argument('--test_interval', action='store', type=int, default=20,
+                        help='The number of batches after which to evaluate the PHOCNet. Default: 20')
+    parser.add_argument('--batch_size', '-bs', action='store', type=int, default=32,
+                        help='The batch size after which the gradient is computed. Default: 32')
+    parser.add_argument('--weight_decay', '-wd', action='store', type=float, default=0.0000,
+                        help='The weight decay for SGD training. Default: 0.0000')
     
     # - experiment arguments
     parser.add_argument('--phoc_unigram_levels', '-pul',
@@ -57,15 +60,11 @@ def train():
     
     args = parser.parse_args()
 
-    
-    # CUDA for PyTorch
-    use_cuda = torch.cuda.is_available()
-    device = torch.device("cuda:0" if use_cuda else "cpu")
 
     # print out the used arguments
     logger.info('###########################################')
     logger.info('Experiment Parameters:')
-    for key, value in vars(args).iteritems():
+    for key, value in vars(args).items():
         logger.info('%s: %s', str(key), str(value))
     logger.info('###########################################')
 
@@ -95,21 +94,20 @@ def train():
     train_loader = DataLoader(train_data_set,batch_size=args.batch_size,sampler=train_sampler,num_workers=8)
     val_loader = DataLoader(train_data_set,batch_size=args.batch_size,sampler=valid_sampler,num_workers=8)
 
-    train_loader_iter = DataLoaderIter(loader=train_loader)
 
     # load CNN
     logger.info('Preparing PHOCNet...')
 
-    cnn = PHOCNet(n_out=train_data_set[0][1].shape[0],input_channels=1,gpp_type='spp',pooling_levels=([1], [5]))
+    cnn = PHOCNet(n_out=train_data_set[0][1].shape[0],input_channels=1,gpp_type='gpp',pooling_levels=([1], [5]))
 
     cnn.init_weights()
 
 
     loss_selection = 'BCE' # or 'cosine'
     if loss_selection == 'BCE':
-        loss = nn.BCEWithLogitsLoss(size_average=True)
+        criterion = nn.BCEWithLogitsLoss(size_average=True)
     elif loss_selection == 'cosine':
-        loss = CosineLoss(size_average=False, use_sigmoid=True)
+        criterion = CosineLoss(size_average=False, use_sigmoid=True)
     else:
         raise ValueError('not supported loss function')
 
@@ -117,123 +115,54 @@ def train():
     cnn.to(device)
 
     # run training
-    lr_cnt = 0
-    max_iters = args.learning_rate_step[-1][0]
     if args.solver_type == 'SGD':
-        optimizer = torch.optim.SGD(cnn.parameters(), args.learning_rate_step[0][1],
+        optimizer = torch.optim.SGD(cnn.parameters(), args.learning_rate,
                                     momentum=args.momentum,
                                     weight_decay=args.weight_decay)
 
     if args.solver_type == 'Adam':
-        optimizer = torch.optim.Adam(cnn.parameters(), args.learning_rate_step[0][1],
+        optimizer = torch.optim.Adam(cnn.parameters(), args.learning_rate,
                                     weight_decay=args.weight_decay)
 
 
-    optimizer.zero_grad()
     logger.info('Training:')
-    for iter_idx in range(max_iters):
-        if iter_idx % args.test_interval == 0: # and iter_idx > 0:
-            logger.info('Evaluating net after %d iterations', iter_idx)
-            evaluate_cnn(cnn=cnn,
-                         dataset_loader=val_loader,
-                         args=args) 
-####################### START Cleaning here                         
-        for _ in range(args.iter_size):
-            if train_loader_iter.batches_outstanding == 0:
-                train_loader_iter = DataLoaderIter(loader=train_loader)
-                logger.info('Resetting data loader')
-            word_img, embedding, _, _ = train_loader_iter.next()
-            if args.gpu_id is not None:
-                if len(args.gpu_id) > 1:
-                    word_img = word_img.cuda()
-                    embedding = embedding.cuda()
-                else:
-                    word_img = word_img.cuda(args.gpu_id[0])
-                    embedding = embedding.cuda(args.gpu_id[0])
+    for epoch in range(args.num_epochs):
+        cnn.train()
+        for i,data in enumerate(train_loader,0):
+            imgs,embeddings,class_ids = data
 
-            word_img = torch.autograd.Variable(word_img)
-            embedding = torch.autograd.Variable(embedding)
-            output = cnn(word_img)
-            ''' BCEloss ??? '''
-            loss_val = loss(output, embedding)*args.batch_size
-            loss_val.backward()
-        optimizer.step()
-        optimizer.zero_grad()
+            imgs = imgs.to(device)
+            embeddings = embeddings.to(device)
+            class_ids = class_ids.to(device)
 
-        # mean runing errors??
-        if (iter_idx+1) % args.display == 0:
-            logger.info('Iteration %*d: %f', len(str(max_iters)), iter_idx+1, loss_val.data[0])
+            optimizer.zero_grad()
+            outputs = cnn(imgs)
 
-        # change lr
-        if (iter_idx + 1) == args.learning_rate_step[lr_cnt][0] and (iter_idx+1) != max_iters:
-            lr_cnt += 1
-            for param_group in optimizer.param_groups:
-                param_group['lr'] = args.learning_rate_step[lr_cnt][1]
+            loss = criterion(outputs, embeddings)
+            loss.backward()
+            optimizer.step()
 
-        #if (iter_idx + 1) % 10000 == 0:
-        #    torch.save(cnn.state_dict(), 'PHOCNet.pt')
-            # .. to load your previously training model:
-            #cnn.load_state_dict(torch.load('PHOCNet.pt'))
-
-    #torch.save(cnn.state_dict(), 'PHOCNet.pt')
-    my_torch_save(cnn, 'PHOCNet.pt')
+            if i % display == 0:
+                print("Epoch: {}, Batch : {}, Loss : {}".format(epoch,i,loss.item()))
+            if i % test_interval == 0:
+                evaluate_cnn(train_data_set,class_ids,outputs)
 
 
-def evaluate_cnn(cnn, dataset_loader, args):
-    logger = logging.getLogger('PHOCNet-Experiment::test')
-    # set the CNN in eval mode
-    cnn.eval()
-    logger.info('Computing net output:')
-    qry_ids = [] #np.zeros(len(dataset_loader), dtype=np.int32)
-    class_ids = np.zeros(len(dataset_loader), dtype=np.int32)
-    embedding_size = dataset_loader.dataset.embedding_size()
-    embeddings = np.zeros((len(dataset_loader), embedding_size), dtype=np.float32)
-    outputs = np.zeros((len(dataset_loader), embedding_size), dtype=np.float32)
-    for sample_idx, (word_img, embedding, class_id, is_query) in enumerate(tqdm.tqdm(dataset_loader)):
-        if args.gpu_id is not None:
-            # in one gpu!!
-            word_img = word_img.cuda(args.gpu_id[0])
-            embedding = embedding.cuda(args.gpu_id[0])
-            #word_img, embedding = word_img.cuda(args.gpu_id), embedding.cuda(args.gpu_id)
-        word_img = torch.autograd.Variable(word_img)
-        embedding = torch.autograd.Variable(embedding)
-        ''' BCEloss ??? '''
-        output = torch.sigmoid(cnn(word_img))
-        #output = cnn(word_img)
-        outputs[sample_idx] = output.data.cpu().numpy().flatten()
-        embeddings[sample_idx] = embedding.data.cpu().numpy().flatten()
-        class_ids[sample_idx] = class_id.numpy()[0,0]
-        if is_query[0] == 1:
-            qry_ids.append(sample_idx)  #[sample_idx] = is_query[0]
-
-    '''
-    # find queries
-    unique_class_ids, counts = np.unique(class_ids, return_counts=True)
-    qry_class_ids = unique_class_ids[np.where(counts > 1)[0]]
-    # remove stopwords if needed
-    
-    qry_ids = [i for i in range(len(class_ids)) if class_ids[i] in qry_class_ids]
-    '''
-
-    qry_outputs = outputs[qry_ids][:]
-    qry_class_ids = class_ids[qry_ids]
-
-    # run word spotting
-    logger.info('Computing mAPs...')
-
-    ave_precs_qbe = map_from_query_test_feature_matrices(query_features = qry_outputs,
-                                                         test_features=outputs,
-                                                         query_labels = qry_class_ids,
-                                                         test_labels=class_ids,
-                                                         metric='cosine',
-                                                         drop_first=True)
-
-    logger.info('mAP: %3.2f', np.mean(ave_precs_qbe[ave_precs_qbe > 0])*100)
+    #torch.save(cnn.state_dict(), '../models/PHOCNet.pt')
 
 
+def evaluate_cnn(dataset, class_ids, outputs):
+    outputs = outputs.cpu().numpy()
+    output_similarity = np.dot(dataset.word_string_embeddings,np.transpose(outputs))
+    indices_predicted = np.argmax(output_similarity,0)
+    class_ids_predicted = []
+    for index in indices_predicted:
+        _,_,class_id_predicted = dataset[index]
+        class_ids_predicted.append(class_id_predicted)
 
-    # clean up -> set CNN in train mode again
-    cnn.train()
+    class_ids_predicted = np.array(class_ids_predicted).flatten()
+    acc_score = accuracy_score(class_ids,class_ids_predicted)
+    print("Training accuracy score :",acc_score)
 
 if __name__ == '__main__':
     logging.basicConfig(format='[%(asctime)s, %(levelname)s, %(name)s] %(message)s',
