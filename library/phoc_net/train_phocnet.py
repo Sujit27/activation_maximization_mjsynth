@@ -70,7 +70,7 @@ def train():
 
     # prepare datset loader
 
-    train_data_set = PhocDataset(root_dir='../../dataset/')
+    train_data_set = PhocDataset(root_dir='/var/tmp/on63ilaw/mjsynth')
 
     # split training and validation data
     validation_split = 0.1
@@ -142,9 +142,9 @@ def train():
             loss.backward()
             optimizer.step()
 
-            if i % display == 0:
+            if i % args.display == 0:
                 print("Epoch: {}, Batch : {}, Loss : {}".format(epoch,i,loss.item()))
-            if i % test_interval == 0:
+            if i % args.test_interval == 0:
                 evaluate_cnn(train_data_set,class_ids,outputs)
 
 
@@ -152,7 +152,8 @@ def train():
 
 
 def evaluate_cnn(dataset, class_ids, outputs):
-    outputs = outputs.cpu().numpy()
+    class_ids = class_ids.cpu()
+    outputs = outputs.cpu().detach().numpy()
     output_similarity = np.dot(dataset.word_string_embeddings,np.transpose(outputs))
     indices_predicted = np.argmax(output_similarity,0)
     class_ids_predicted = []
