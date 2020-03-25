@@ -1,4 +1,6 @@
 from dict_net import *
+import os
+import re
 import dagtasets as dg
 import sklearn.metrics as skm
 import csv

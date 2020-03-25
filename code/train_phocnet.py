@@ -1,3 +1,6 @@
+import sys
+sys.path.append("../library")
+sys.path.append("../library/phoc_net")
 import argparse
 import logging
 
@@ -28,11 +31,11 @@ def train():
     # argument parsing
     parser = argparse.ArgumentParser()    
     # - train arguments
-    parser.add_argument('--num_epochs', '-ep', action='store', type=int, default=30,
-                        help='Number of epochs for training. Default: 30')
+    parser.add_argument('--num_epochs', '-ep', action='store', type=int, default=50,
+                        help='Number of epochs for training. Default: 50')
 
-    parser.add_argument('--learning_rate', '-lr',action='store',type=float, default=0.0005,
-            help='Learning rate for training. Default: 0.0005')
+    parser.add_argument('--learning_rate', '-lr',action='store',type=float, default=0.0001,
+            help='Learning rate for training. Default: 0.0001')
     parser.add_argument('--momentum', '-mom', action='store', type=float, default=0.9,
                         help='The momentum for SGD training (or beta1 for Adam). Default: 0.9')
     parser.add_argument('--momentum2', '-mom2', action='store', type=float, default=0.999,
@@ -43,10 +46,10 @@ def train():
                         help='Which solver type to use. Possible: SGD, Adam. Default: Adam')
     parser.add_argument('--display', action='store', type=int, default=10,
                         help='The number of batches after which to display the loss values. Default: 10')
-    parser.add_argument('--test_interval', action='store', type=int, default=20,
-                        help='The number of batches after which to evaluate the PHOCNet. Default: 20')
-    parser.add_argument('--batch_size', '-bs', action='store', type=int, default=32,
-                        help='The batch size after which the gradient is computed. Default: 32')
+    parser.add_argument('--test_interval', action='store', type=int, default=10,
+                        help='The number of batches after which to evaluate the PHOCNet. Default: 10')
+    parser.add_argument('--batch_size', '-bs', action='store', type=int, default=128,
+                        help='The batch size after which the gradient is computed. Default: 128')
     parser.add_argument('--weight_decay', '-wd', action='store', type=float, default=0.0000,
                         help='The weight decay for SGD training. Default: 0.0000')
     
@@ -56,7 +59,9 @@ def train():
                         type=lambda str_list: [int(elem) for elem in str_list.split(',')],
                         default='1,2,4,8',
                         help='The comma seperated list of PHOC unigram levels. Default: 1,2,4,8')
-    
+    parser.add_argument('--num_word_labels', '-nwl', action='store', type=int, default=10,
+                        help='The number of word labels. Default: 10')
+
     
     args = parser.parse_args()
 
@@ -70,7 +75,7 @@ def train():
 
     # prepare datset loader
 
-    train_data_set = PhocDataset(root_dir='/var/tmp/on63ilaw/mjsynth')
+    train_data_set = PhocDataset('/var/tmp/on63ilaw/mjsynth',args.num_word_labels)
 
     # split training and validation data
     validation_split = 0.1
@@ -98,12 +103,12 @@ def train():
     # load CNN
     logger.info('Preparing PHOCNet...')
 
-    cnn = PHOCNet(n_out=train_data_set[0][1].shape[0],input_channels=1,gpp_type='gpp',pooling_levels=([1], [5]))
+    cnn = PHOCNet(n_out=train_data_set[0][1].shape[0],input_channels=1,gpp_type='spp',pooling_levels=4)
 
     cnn.init_weights()
 
 
-    loss_selection = 'BCE' # or 'cosine'
+    loss_selection = 'BCE' #or 'cosine' 
     if loss_selection == 'BCE':
         criterion = nn.BCEWithLogitsLoss(size_average=True)
     elif loss_selection == 'cosine':
@@ -138,7 +143,7 @@ def train():
             optimizer.zero_grad()
             outputs = cnn(imgs)
 
-            loss = criterion(outputs, embeddings)
+            loss = criterion(outputs, embeddings) * args.batch_size
             loss.backward()
             optimizer.step()
 
@@ -146,6 +151,7 @@ def train():
                 print("Epoch: {}, Batch : {}, Loss : {}".format(epoch,i,loss.item()))
             if i % args.test_interval == 0:
                 evaluate_cnn(train_data_set,class_ids,outputs)
+                #evaluate_cnn(train_data_set,class_ids,embeddings) # to check that evaluate_cnn works
 
 
     #torch.save(cnn.state_dict(), '../models/PHOCNet.pt')
