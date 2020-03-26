@@ -59,8 +59,8 @@ def train():
                         type=lambda str_list: [int(elem) for elem in str_list.split(',')],
                         default='1,2,4,8',
                         help='The comma seperated list of PHOC unigram levels. Default: 1,2,4,8')
-    parser.add_argument('--num_word_labels', '-nwl', action='store', type=int, default=10,
-                        help='The number of word labels. Default: 10')
+    parser.add_argument('--num_word_labels', '-nwl', action='store', type=int, default=None,
+                        help='The number of word labels. None means all word labels considered for training. Default: None')
 
     
     args = parser.parse_args()
