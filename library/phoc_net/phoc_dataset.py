@@ -34,15 +34,15 @@ class PhocDataset(Dataset):
 
         transform = dg.mjsynth.mjsynth_gray_scale
         ds = dg.mjsynth.MjSynthWS(root_dir,transform)
-        words_dict,ds = subset_dataset(ds,num_labels)
+        #words_dict,ds = subset_dataset(ds,num_labels)
         self.ds = ds
         
-#        annotation_file = os.path.join(root_dir,'raw',"annotation_train.txt")
-#        with open(annotation_file) as f:
-#            lines = [line.rstrip() for line in f]
-#        words = [((line.split("_"))[1]).lower() for line in lines]
-        words = [[key[1]]*len(value) for key,value in words_dict.items()]
-        words = [word for sublist in words for word in sublist]
+        annotation_file = os.path.join(root_dir,'raw',"annotation_train.txt")
+        with open(annotation_file) as f:
+            lines = [line.rstrip() for line in f]
+        words = [((line.split("_"))[1]).lower() for line in lines]
+#        words = [[key[1]]*len(value) for key,value in words_dict.items()]
+#        words = [word for sublist in words for word in sublist]
 
         # compute a mapping from class string to class id
         self.label_encoder = LabelEncoder()

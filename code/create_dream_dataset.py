@@ -10,8 +10,8 @@ import argparse
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
 parser.add_argument('-n',type=int,default = '1000', dest='num_samples',help='Number of dream samples to be generated')
-parser.add_argument('-m',type=str,default = '../models/net_1000_0.001_200_0.0.pth', dest='model_name',help='Trained model for dreaming')
-parser.add_argument('-o',type=str,default = "../dreams/", dest='output_path',help='dream output location')
+parser.add_argument('-m',type=str,default = '../models/net_2000_0.001_400_0.0.pth', dest='model_name',help='Trained model for dreaming')
+parser.add_argument('-o',type=str,default = "../sample_dreams_dataset/raw2/", dest='output_path',help='dream output location')
 
 
 cmd_args = parser.parse_args()
@@ -34,7 +34,7 @@ def main():
         im,labels = dreamer.random_batch_dream(1,random_seed)
         
         words = label_to_word(labels)
-        name = "_".join(elem for elem in words) + str(random_seed) + ".png"
+        name = str(i) + "_" + words[0] + "_" + str(random_seed) + ".jpg"
         name = os.path.join(output_path,name)
         dreamer.show(im,name)
         if i%100 == 99 :
