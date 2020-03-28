@@ -44,10 +44,10 @@ def train():
                         help='Epsilon if solver is Adam. Default: 1e-8')
     parser.add_argument('--solver_type', '-st', choices=['SGD', 'Adam'], default='Adam',
                         help='Which solver type to use. Possible: SGD, Adam. Default: Adam')
-    parser.add_argument('--display', action='store', type=int, default=10,
-                        help='The number of batches after which to display the loss values. Default: 10')
-    parser.add_argument('--test_interval', action='store', type=int, default=10,
-                        help='The number of batches after which to evaluate the PHOCNet. Default: 10')
+    parser.add_argument('--display', action='store', type=int, default=50,
+                        help='The number of batches after which to display the loss values. Default: 50')
+    parser.add_argument('--test_interval', action='store', type=int, default=500,
+                        help='The number of batches after which to evaluate the PHOCNet. Default: 500')
     parser.add_argument('--batch_size', '-bs', action='store', type=int, default=128,
                         help='The batch size after which the gradient is computed. Default: 128')
     parser.add_argument('--weight_decay', '-wd', action='store', type=float, default=0.0000,
@@ -133,6 +133,8 @@ def train():
     logger.info('Training:')
     for epoch in range(args.num_epochs):
         cnn.train()
+        training_acc_list = []
+        validation_acc_list = []
         for i,data in enumerate(train_loader,0):
             imgs,embeddings,class_ids = data
 
@@ -150,11 +152,29 @@ def train():
             if i % args.display == 0:
                 print("Epoch: {}, Batch : {}, Loss : {}".format(epoch,i,loss.item()))
             if i % args.test_interval == 0:
-                evaluate_cnn(train_data_set,class_ids,outputs)
-                #evaluate_cnn(train_data_set,class_ids,embeddings) # to check that evaluate_cnn works
+                training_acc = evaluate_cnn(train_data_set,class_ids,outputs)
+                print("Traning accuracy : {}".format(training_acc))
+                training_acc_list.append(training_acc)
+                #evaluate_cnn(train_data_set,class_ids,embeddings) # to check that evaluate_cnn work
+
+        cnn.eval()
+        for i,data in enumerate(val_loader,0):
+            if i % 20 == 0:
+                imgs,embeddings,class_ids = data
+
+                imgs = imgs.to(device)
+                embeddings = embeddings.to(device)
+                class_ids = class_ids.to(device)
+
+                outputs = cnn(imgs)
+                validation_acc = evaluate_cnn(train_data_set,class_ids,outputs)
+                validation_acc_list.append(validation_acc)
+
+        print("End of epoch : {}, Training accuracy : {}, Validation accuracy : {}".format(epoch,sum(training_acc_list)/len(training_acc_list),sum(validation_acc_list)/len(validation_acc_list)))
 
 
-    #torch.save(cnn.state_dict(), '../models/PHOCNet.pt')
+
+    torch.save(cnn.state_dict(), '../models/PHOCNet.pt')
 
 
 def evaluate_cnn(dataset, class_ids, outputs):
@@ -169,7 +189,8 @@ def evaluate_cnn(dataset, class_ids, outputs):
 
     class_ids_predicted = np.array(class_ids_predicted).flatten()
     acc_score = accuracy_score(class_ids,class_ids_predicted)
-    print("Training accuracy score :",acc_score)
+    #print("Training accuracy score :",acc_score)
+    return acc_score
 
 if __name__ == '__main__':
     logging.basicConfig(format='[%(asctime)s, %(levelname)s, %(name)s] %(message)s',

@@ -2,6 +2,8 @@
 
 __pycache__/
 
+sample_dreams_dataset
+
 models/
 
 raw_files/
@@ -10,4 +12,4 @@ scrap_dreams/
 
 dataset/
 
-*.txt
+
