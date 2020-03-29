@@ -46,8 +46,8 @@ def train():
                         help='Which solver type to use. Possible: SGD, Adam. Default: Adam')
     parser.add_argument('--display', action='store', type=int, default=50,
                         help='The number of batches after which to display the loss values. Default: 50')
-    parser.add_argument('--test_interval', action='store', type=int, default=500,
-                        help='The number of batches after which to evaluate the PHOCNet. Default: 500')
+    parser.add_argument('--test_interval', action='store', type=int, default=50,
+                        help='The number of batches after which to evaluate the PHOCNet. Default: 50')
     parser.add_argument('--batch_size', '-bs', action='store', type=int, default=128,
                         help='The batch size after which the gradient is computed. Default: 128')
     parser.add_argument('--weight_decay', '-wd', action='store', type=float, default=0.0000,
