@@ -76,7 +76,7 @@ class DeepDream():
                 print("Data standard deviation set at 0.5 by default")
 
 
-    def __call__(self,im=None,label=0,nItr=100,lr=0.1,random_seed=0):
+    def __call__(self,im=None,label=0,nItr=100,lr=0.1,random_seed=0,loss_type=1):
         """Does activation maximization on a specific label for specified iterations,
            acts like a functor, and returns an image tensor
         """
@@ -88,16 +88,34 @@ class DeepDream():
 
             im = Variable(im.unsqueeze(0),requires_grad=True)
 
-        softmaxed_activation = F.softmax(self.net(im),dim=1)
+        if loss_type == 5:
+            criterion = nn.CrossEntropyLoss()
+        
+        output = self.net(im)
+        softmaxed_activation = F.softmax(output,dim=1)
         val,index = softmaxed_activation.max(1)
+        print("Activation before optimizing : {} ".format(output[0,label]))
         print("Probablity before optimizing : {} and label {}".format(val[0],index[0]))
         print("Dreaming...")
 
         for i in range(nItr):
 
             out = self.net(im)
-            #loss = -out[0,label]
-            loss = out[0,label]
+            if loss_type == 1:
+                loss = out[0,label]
+            elif loss_type == 2:
+                loss = -out[0,label]
+            elif loss_type == 3:
+                loss = abs(out[0,label])
+            elif loss_type == 4:
+                loss = F.softmax(out)[0,label]
+            else:
+                target = torch.zeros(1,dtype=torch.long)
+                target[0] = label
+                target = target.to(self.device)
+                out = F.softmax(out)
+                loss = criterion(out, target)
+            
             loss.backward()
 
             avg_grad = np.abs(im.grad.data.cpu().numpy()).mean()
@@ -110,8 +128,10 @@ class DeepDream():
 
             im.grad.data.zero_()
         
-        softmaxed_activation = F.softmax(self.net(im),dim=1)
+        output = self.net(im)
+        softmaxed_activation = F.softmax(output,dim=1)
         val,index = softmaxed_activation.max(1)
+        print("Activation after optimizing : {} ".format(output[0,label]))
         print("Probablity after optimizing : {} and label {}".format(val[0],index[0]))
 
         #return im,val,index
