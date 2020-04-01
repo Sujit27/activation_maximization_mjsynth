@@ -23,7 +23,7 @@ def grow_net(input_net,output_net_num_labels):
 
 # Convolutional neural network 
 class DictNet(nn.Module):
-    # DictNet for images with size 32x256, padding transform
+    # DictNet for images with size 32x128, padding transform
     def __init__(self, num_classes=772, conv_capacity=16, fc_capacity=128):
         super().__init__()
         self.cnn_layers = nn.Sequential(
