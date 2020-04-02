@@ -76,7 +76,7 @@ def train():
     # prepare datset loader
 
     #train_data_set = PhocDataset('/var/tmp/on63ilaw/mjsynth',args.num_word_labels)
-    train_data_set = PhocDataset('/var/tmp/on63ilaw/mjsynth/sample_dreams_dataset',args.num_word_labels)
+    train_data_set = PhocDataset('/var/tmp/on63ilaw/mjsynth/sample_dreams_dataset_6000',args.num_word_labels)
 
     # split training and validation data
     validation_split = 0.1
@@ -175,7 +175,7 @@ def train():
 
 
 
-    torch.save(cnn.state_dict(), '../models/PHOCNet.pt')
+    torch.save(cnn.state_dict(), '../models/PHOCNet_6000.pt')
 
 
 def evaluate_cnn(dataset, class_ids, outputs):
