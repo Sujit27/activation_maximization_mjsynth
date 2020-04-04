@@ -107,4 +107,4 @@ class Discriminator(nn.Module):
         x = x.view(-1,64*32*8)
         
         x = F.relu(self.bn4(self.fc1(x)))
-        return F.softmax(self.final(x),dim=1)
+        return self.final(x)

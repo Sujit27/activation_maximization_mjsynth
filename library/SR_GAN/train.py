@@ -28,7 +28,7 @@ parser.add_argument('--real_dataroot', type=str, default='/var/tmp/on63ilaw/mjsy
 parser.add_argument('--dream_dataroot', type=str, default='/var/tmp/on63ilaw/mjsynth/sample_dreams_dataset', help='path to dream images dataset')
 parser.add_argument('--workers', type=int, default=2, help='number of data loading workers')
 parser.add_argument('--batchSize', type=int, default=32, help='input batch size')
-parser.add_argument('--nEpochs', type=int, default=100, help='number of epochs to train for')
+parser.add_argument('--nEpochs', type=int, default=20, help='number of epochs to train for')
 parser.add_argument('--disp', type=int, default=50, help='number of iterations for display of losses')
 parser.add_argument('--generatorLR', type=float, default=0.00001, help='learning rate for generator')
 parser.add_argument('--discriminatorLR', type=float, default=0.00001, help='learning rate for discriminator')
@@ -52,11 +52,11 @@ def main():
     # create generator and discriminator
     generator = Generator()
     discriminator = Discriminator()
-    print(generator)
-    print(discriminator)
+    #print(generator)
+    #print(discriminator)
 
     # Define Loss function
-    adversarial_criterion = nn.BCELoss()
+    adversarial_criterion = nn.CrossEntropyLoss()
 
     # targets for dream and real images
     zeros_const = torch.zeros(opt.batchSize,dtype=torch.long)
@@ -65,8 +65,8 @@ def main():
     # move tensors to cuda
     generator.to(device)
     discriminator.to(device)
-    zeros_const.to(device)
-    ones_const.to(device)
+    zeros_const = zeros_const.to(device)
+    ones_const = ones_const.to(device)
 
     # Define optimizers
     optim_generator = optim.Adam(generator.parameters(), lr=opt.generatorLR)
@@ -101,11 +101,10 @@ def main():
             real_output = discriminator(real_images)
             dream_output = discriminator(dream_images_generated)
 
-            discriminator_loss = adversarial_criterion(real_output, ones_const) + \
-                                 adversarial_criterion(dream_output, zeros_const)
-            sum_discriminator_loss += discriminator_loss.data[0]
+            discriminator_loss = adversarial_criterion(real_output, ones_const) + adversarial_criterion(dream_output, zeros_const)
+            sum_discriminator_loss += discriminator_loss.item()
             
-            discriminator_loss.backward()
+            discriminator_loss.backward(retain_graph=True)
             optim_discriminator.step()
 
             ######### Train generator #########
@@ -113,14 +112,14 @@ def main():
 
             generator_loss = adversarial_criterion(dream_output, ones_const)
            
-            sum_generator_loss += generator_loss.data[0]
+            sum_generator_loss += generator_loss.item()
             
             generator_loss.backward()
             optim_generator.step()  
 
             if i % opt.disp == 0:
-                print("Generator loss",generator_loss)
-                print("Discriminator loss",discriminator_loss)
+                print("Generator loss",generator_loss.item())
+                print("Discriminator loss",discriminator_loss.item())
             
             ######### Status and display #########
         print('End of epoch {}, Avg. generator loss'.format((sum_generator_loss/len(dataloader)), epoch))
