@@ -88,7 +88,7 @@ class DeepDream():
 
             im = Variable(im.unsqueeze(0),requires_grad=True)
 
-        if loss_type == 5:
+        if loss_type == 4:
             criterion = nn.CrossEntropyLoss()
         
         output = self.net(im)
@@ -106,15 +106,16 @@ class DeepDream():
             elif loss_type == 2:
                 loss = -out[0,label]
             elif loss_type == 3:
-                loss = abs(out[0,label])
+                loss = 1 - F.softmax(out)[0,label]
             elif loss_type == 4:
-                loss = F.softmax(out)[0,label]
-            else:
                 target = torch.zeros(1,dtype=torch.long)
                 target[0] = label
                 target = target.to(self.device)
-                out = F.softmax(out)
+                #out = F.softmax(out)
                 loss = criterion(out, target)
+            else:
+                print("Loss type is not valid")
+                break
             
             loss.backward()
 
