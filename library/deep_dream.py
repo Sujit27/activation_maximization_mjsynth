@@ -88,7 +88,7 @@ class DeepDream():
 
             im = Variable(im.unsqueeze(0),requires_grad=True)
 
-        if loss_type == 5:
+        if loss_type == 5 or loss_type == 6:
             criterion = nn.CrossEntropyLoss()
         
         output = self.net(im)
@@ -97,6 +97,8 @@ class DeepDream():
         print("Activation before optimizing : {} ".format(output[0,label]))
         print("Probablity before optimizing : {} and label {}".format(val[0],index[0]))
         print("Dreaming...")
+        
+        loss_list = []
 
         for i in range(nItr):
 
@@ -106,17 +108,27 @@ class DeepDream():
             elif loss_type == 2:
                 loss = -out[0,label]
             elif loss_type == 3:
-                loss = abs(out[0,label])
-            elif loss_type == 4:
                 loss = F.softmax(out)[0,label]
-            else:
+            elif loss_type == 4:
+                loss = - F.softmax(out)[0,label]
+            elif loss_type == 5:
                 target = torch.zeros(1,dtype=torch.long)
                 target[0] = label
                 target = target.to(self.device)
-                out = F.softmax(out)
+                #out = F.softmax(out)
                 loss = criterion(out, target)
+            elif loss_type == 6:
+                target = torch.zeros(1,dtype=torch.long)
+                target[0] = label
+                target = target.to(self.device)
+                #out = F.softmax(out)
+                loss = - criterion(out, target)
+            else:
+                print("Loss type is not valid")
+                break
             
             loss.backward()
+            loss_list.append(loss)
 
             avg_grad = np.abs(im.grad.data.cpu().numpy()).mean()
             norm_lr = lr / (avg_grad + 1e-20)
@@ -135,7 +147,7 @@ class DeepDream():
         print("Probablity after optimizing : {} and label {}".format(val[0],index[0]))
 
         #return im,val,index
-        return im,val
+        return im,val,loss_list
 
 
     def createInputImage(self,random_seed):
