@@ -1,27 +1,43 @@
-## creates subset of the mjsynth dataset according to the words in the .txt file provideda## see a sample txt file in this directory
-## usage: $python create_subset_dataset.py <mjsynth_data_loccation> <txt file> 
 import dagtasets.mjsynth as mj 
 import os
 import shutil
 import sys
+import argparse
+from tqdm import trange
 from find_subset_indices_labels import *
-script_path = os.getcwd()
-sys.path.append(script_path)
 
-def subset_dataset(root,lex_txt):
-    #os.chdir(root)
-    os.mkdir(os.path.join(root,'raw2'))
-    #print('new directory created at {}'.format(root))
+## creates subset of the mjsynth dataset according to the word length provided and saves the output in a directory raw2 at the root directory
+parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
+parser.add_argument('--data_root', '-r',action='store',type=str, default='/var/tmp/on63ilaw/mjsynth',help='Location where mjsynth dataset will be stored')
+parser.add_argument('--word_len', '-wl',action='store',type=int, default=8,help='Length of word for making a subset of the original Mjsynth dataset present at the data root location')
+
+args = parser.parse_args()
+
+def subset_dataset(root,word_len):
+    lexicon_file = os.path.join(root,'raw','lexicon.txt')
+    words_list = sorted([w for w in open(lexicon_file).read().strip().split("\n") if (len(w)==word_len)])
+    
+    print("Number of word labels in the subset dataset", len(words_list))
+       
+    try:
+        os.mkdir(os.path.join(root,'raw2'))
+    except:
+        print("raw2 file already exists at destination. Remove or rename it")
+        return
+    
     ds = mj.MjSynthWS(root)
-    indices,_ = find_indices_labels(ds,os.path.join(script_path,lex_txt))
-    
+    print("Finding indices...")
+    indices = find_indices_labels(ds,words_list)
+
     dst = os.path.join(root,'raw2')
+    print("Copying files from root...")
     
-    for i in range(len(indices)):
+    for i in trange(len(indices)):
         src = os.path.join(root,'raw',ds.filenames[indices[i]])
         shutil.copy(src,dst)
-        
+    
+    print("Copy complete. Writing annotation text file...")
     filenames = [ds.filenames[indices[i]] for i in range(len(indices))]
     filename_list = [os.path.split(filename)[1] for filename in filenames]
     
@@ -32,14 +48,7 @@ def subset_dataset(root,lex_txt):
 
 
 def main():
-    #root = '/mnt/c/Users/User/Desktop/mjsynth'
-    if len(sys.argv) < 3:
-        print("Pass the location of the data as a parameter and txt file as command line parameters. For example python create_subset_dataset.py /var/tmp/ lex_###.txt")
-        return 1
-    else:
-        root = sys.argv[1]
-        lex_txt = sys.argv[2] # text file with one word per each line
-        subset_dataset(root,lex_txt)
+    subset_dataset(args.data_root,args.word_len)
 
 if __name__ == "__main__":
     main()

@@ -3,10 +3,7 @@ import os
 import dagtasets.mjsynth as mj
 import re
 
-def find_indices_labels(ds,lex_file):
-    
-    with open(lex_file,'r') as f:
-        lex = [line.strip() for line in f]
+def find_indices_labels(ds,lex):
 
     file_names = [item for item in ds.filenames]
     file_names = [os.path.basename(item) for item in file_names]
@@ -16,16 +13,16 @@ def find_indices_labels(ds,lex_file):
     targets = [int((item.split("_"))[0]) for item in file_names]
 
     indices = []
-    labels = []
     index = 0
     for word in words:
         for item in lex:
             if word == item:
                 indices.append(index)
-                labels.append(targets[index])
         index += 1
+#        if index == 100:
+#            break
 
-    return indices,labels
+    return indices
 
 def main():
     ds = mj.MjSynthWS('/var/tmp/on63ilaw/mjsynth')
