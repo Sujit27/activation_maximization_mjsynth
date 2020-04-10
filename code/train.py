@@ -14,7 +14,7 @@ parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFo
 parser.add_argument('-n',type=int,default = None, dest='num_labels',help='Store number of labels')
 parser.add_argument('-m',type=str,default = None, dest='existing_model_location',help='Full path of existing model')
 parser.add_argument('-g',type=bool,default = False, dest='grow_prev_model',help='Bool whether to grow the existing model')
-parser.add_argument('-o',type=str,default = "../models", dest='output_path',help='Output model location')
+parser.add_argument('-o',type=str,default = "../models2", dest='output_path',help='Output model location')
 parser.add_argument('-d',type=str,default = "/var/tmp/on63ilaw/mjsynth/", dest='data_root',help='input data location')
 parser.add_argument('-lr',type=float,default = 0.001, dest='lr',help='Learning rate')
 parser.add_argument('-ne',type=int,default = 30, dest='num_epochs',help='Number of epochs to train')
