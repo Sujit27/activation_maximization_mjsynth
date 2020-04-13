@@ -29,7 +29,11 @@ def train():
     logger = logging.getLogger('PHOCNet-Experiment::train')
     logger.info('--- Running PHOCNet Training ---')
     # argument parsing
-    parser = argparse.ArgumentParser()    
+    parser = argparse.ArgumentParser()   
+    # input data and output model save locations arguments
+    parser.add_argument('--data_root', '-dr', action='store', type=str, default="/var/tmp/on63ilaw/mjsynth/",help='Location of input data. Default: /var/tmp/on63ilaw/mjsynth')
+    parser.add_argument('--output_dir', '-od', action='store', type=str, default="../models",help='Location of saving output model. Default: ../models')
+    parser.add_argument('--save_model', '-sm', action='store', type=str, default="PhocNet.pt",help='Name of the output model. Default: PhocNet.pt')
     # - train arguments
     parser.add_argument('--num_epochs', '-ep', action='store', type=int, default=50,
                         help='Number of epochs for training. Default: 50')
@@ -76,7 +80,7 @@ def train():
     # prepare datset loader
 
     #train_data_set = PhocDataset('/var/tmp/on63ilaw/mjsynth',args.num_word_labels)
-    train_data_set = PhocDataset('/var/tmp/on63ilaw/mjsynth/sample_dreams_dataset_6000',args.num_word_labels)
+    train_data_set = PhocDataset(args.data_root,args.num_word_labels)
 
     # split training and validation data
     validation_split = 0.1
@@ -175,8 +179,7 @@ def train():
 
 
 
-    torch.save(cnn.state_dict(), '../models/PHOCNet_6000.pt')
-
+    torch.save(cnn.state_dict(), os.path.join(args.output_dir,args.save_model))
 
 def evaluate_cnn(dataset, class_ids, outputs):
     class_ids = class_ids.cpu()
