@@ -22,9 +22,8 @@ class PhocDataset(Dataset):
     Phoc dataset class for the mjsynth dataset
     '''
 
-    def __init__(self, root_dir,num_labels=None,phoc_unigram_levels=(1, 2, 4, 8)):
+    def __init__(self, root_dir,phoc_unigram_levels=(1, 2, 4, 8)):
         '''root_dir : location of dataset
-        num_labels : subsets the dataset. Setting it None uses the whole dataset
         '''
         # class members
         self.word_list = None
@@ -34,7 +33,6 @@ class PhocDataset(Dataset):
 
         transform = dg.mjsynth.mjsynth_gray_scale
         ds = dg.mjsynth.MjSynthWS(root_dir,transform)
-        #words_dict,ds = subset_dataset(ds,num_labels)
         self.ds = ds
         
         annotation_file = os.path.join(root_dir,'raw',"annotation_train.txt")
