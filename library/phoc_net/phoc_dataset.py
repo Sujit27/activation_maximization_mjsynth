@@ -66,6 +66,7 @@ class PhocDataset(Dataset):
         embedding = self.word_string_embeddings[index]
         embedding = torch.from_numpy(embedding)
         class_id = self.label_encoder.transform([self.word_list[index]])
+        word = self.ds.filenames[index].split("_")[1]
 
-        return word_img, embedding, class_id
+        return word_img, embedding, class_id, word 
 

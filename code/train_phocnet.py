@@ -141,7 +141,7 @@ def train():
         training_acc_list = []
         validation_acc_list = []
         for i,data in enumerate(train_loader,0):
-            imgs,embeddings,class_ids = data
+            imgs,embeddings,class_ids,_ = data
 
             imgs = imgs.to(device)
             embeddings = embeddings.to(device)
@@ -165,7 +165,7 @@ def train():
         cnn.eval()
         for i,data in enumerate(val_loader,0):
             if i % 20 == 0:
-                imgs,embeddings,class_ids = data
+                imgs,embeddings,class_ids,_ = data
 
                 imgs = imgs.to(device)
                 embeddings = embeddings.to(device)
