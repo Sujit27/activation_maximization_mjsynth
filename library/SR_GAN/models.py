@@ -8,6 +8,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
 
+from spectral import *
+
 def swish(x):
     return x * F.sigmoid(x)
 
@@ -73,38 +75,42 @@ class Generator(nn.Module):
 
         return F.relu(self.conv3(x))
 
+#class Discriminator(nn.Module):
+#    def __init__(self):
+#        super(Discriminator, self).__init__()
+#        self.conv1 = nn.Conv2d(1, 64, 3, stride=1, padding=1)
+#        self.bn1 = nn.BatchNorm2d(64)
+#        self.conv2 = nn.Conv2d(64, 64, 3, stride=2, padding=1)
+#        self.bn2 = nn.BatchNorm2d(64)
+#        self.conv3 = nn.Conv2d(64, 64, 3, stride=2, padding=1)
+#        self.bn3 = nn.BatchNorm2d(64)
+#        self.fc1 = nn.Linear(64*32*8,256)
+#        self.bn4 = nn.BatchNorm1d(256)
+#
+#        self.final = nn.Linear(256,2)
+#
+#    def forward(self, x):
+#        x = F.relu(self.bn1(self.conv1(x)))
+#        x = F.relu(self.bn2(self.conv2(x)))
+#        x = F.relu(self.bn3(self.conv3(x)))
+#        x = x.view(-1,64*32*8)
+#        
+#        x = F.relu(self.bn4(self.fc1(x)))
+#        return self.final(x)
+    
 class Discriminator(nn.Module):
     def __init__(self):
         super(Discriminator, self).__init__()
-        self.conv1 = nn.Conv2d(1, 64, 3, stride=1, padding=1)
-        self.bn1 = nn.BatchNorm2d(64)
-        self.conv2 = nn.Conv2d(64, 64, 3, stride=2, padding=1)
-        self.bn2 = nn.BatchNorm2d(64)
-        self.conv3 = nn.Conv2d(64, 64, 3, stride=2, padding=1)
-        self.bn3 = nn.BatchNorm2d(64)
-#        self.conv4 = nn.Conv2d(128, 128, 3, stride=2, padding=1)
-#        self.bn4 = nn.BatchNorm2d(128)
-#        self.conv5 = nn.Conv2d(128, 256, 3, stride=1, padding=1)
-#        self.bn5 = nn.BatchNorm2d(256)
-#        self.conv6 = nn.Conv2d(256, 256, 3, stride=2, padding=1)
-#        self.bn6 = nn.BatchNorm2d(256)
-#        self.conv7 = nn.Conv2d(256, 512, 3, stride=1, padding=1)
-#        self.bn7 = nn.BatchNorm2d(512)
-#        self.conv8 = nn.Conv2d(512, 512, 3, stride=2, padding=1)
-#        self.bn8 = nn.BatchNorm2d(512)
-#
-#        # Replaced original paper FC layers with FCN
-#        self.conv9 = nn.Conv2d(512, 1, 1, stride=1, padding=1)
-        self.fc1 = nn.Linear(64*32*8,256)
-        self.bn4 = nn.BatchNorm1d(256)
+        self.conv1 = SpectralNorm(nn.Conv2d(1, 64, 3, stride=1, padding=1))
+        self.conv2 = SpectralNorm(nn.Conv2d(64, 64, 3, stride=2, padding=1))
+        self.conv3 = SpectralNorm(nn.Conv2d(64, 64, 3, stride=2, padding=1))
+        self.fc = SpectralNorm(nn.Linear(64*32*8,2))
 
-        self.final = nn.Linear(256,2)
 
     def forward(self, x):
-        x = F.relu(self.bn1(self.conv1(x)))
-        x = F.relu(self.bn2(self.conv2(x)))
-        x = F.relu(self.bn3(self.conv3(x)))
+        x = F.relu(self.conv1(x))
+        x = F.relu(self.conv2(x))
+        x = F.relu(self.conv3(x))
         x = x.view(-1,64*32*8)
         
-        x = F.relu(self.bn4(self.fc1(x)))
-        return self.final(x)
+        return self.fc(x)

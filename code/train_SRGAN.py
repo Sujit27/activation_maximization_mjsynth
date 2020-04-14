@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 
+import sys
+sys.path.append("../library/SR_GAN")
 import argparse
 import os
-import sys
 from pathlib import Path
 import random
 
@@ -122,8 +123,8 @@ def main():
                 print("Discriminator loss",discriminator_loss.item())
             
             ######### Status and display #########
-        print('End of epoch {}, Avg. generator loss'.format((sum_generator_loss/len(dataloader)), epoch))
-        print('End of epoch {}, Avg. discriminator loss'.format((sum_discriminator_loss/len(dataloader)), epoch))
+        print('End of epoch {}, Avg. generator loss'.format((sum_generator_loss/len(data_loader)), epoch))
+        print('End of epoch {}, Avg. discriminator loss'.format((sum_discriminator_loss/len(data_loader)), epoch))
 
         # Do checkpointing
     torch.save(generator.state_dict(), 'out/generator_final.pth' )
