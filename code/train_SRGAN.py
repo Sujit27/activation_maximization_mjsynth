@@ -25,6 +25,7 @@ from models import Generator, Discriminator
 #from utils import Visualizer
 
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser.add_argument('--model_save_loc', type=str, default='.', help='location where the generator checkpoints are saved')
 parser.add_argument('--real_dataroot', type=str, default='/var/tmp/on63ilaw/mjsynth', help='path to real images dataset')
 parser.add_argument('--dream_dataroot', type=str, default='/var/tmp/on63ilaw/mjsynth/sample_dreams_dataset', help='path to dream images dataset')
 parser.add_argument('--workers', type=int, default=2, help='number of data loading workers')
@@ -36,7 +37,7 @@ parser.add_argument('--discriminatorLR', type=float, default=0.00001, help='lear
 parser.add_argument('--nGPU', type=int, default=1, help='number of GPUs to use')
 
 opt = parser.parse_args()
-print(opt)
+#print(opt)
 
 Path("./out").mkdir(parents=True,exist_ok=True)
 
@@ -79,11 +80,9 @@ def main():
 
     ####################################
     # SRGAN training
-    print ('SRGAN training')
+    print("Generator loss, Discriminator loss")
     for epoch in range(opt.nEpochs):
 
-        sum_generator_loss = 0.0
-        sum_discriminator_loss = 0.0
         for i, data in enumerate(data_loader):
 
             # extract images
@@ -103,7 +102,6 @@ def main():
             dream_output = discriminator(dream_images_generated)
 
             discriminator_loss = adversarial_criterion(real_output, ones_const) + adversarial_criterion(dream_output, zeros_const)
-            sum_discriminator_loss += discriminator_loss.item()
             
             discriminator_loss.backward(retain_graph=True)
             optim_discriminator.step()
@@ -112,22 +110,16 @@ def main():
             generator.zero_grad()
 
             generator_loss = adversarial_criterion(dream_output, ones_const)
-           
-            sum_generator_loss += generator_loss.item()
             
             generator_loss.backward()
             optim_generator.step()  
 
             if i % opt.disp == 0:
-                print("Generator loss",generator_loss.item())
-                print("Discriminator loss",discriminator_loss.item())
-            
-            ######### Status and display #########
-        print('End of epoch {}, Avg. generator loss'.format((sum_generator_loss/len(data_loader)), epoch))
-        print('End of epoch {}, Avg. discriminator loss'.format((sum_discriminator_loss/len(data_loader)), epoch))
-
+                print("{},{}".format(generator_loss.item(),discriminator_loss.item())) 
         # Do checkpointing
-    torch.save(generator.state_dict(), 'out/generator_final.pth' )
+        if epoch % 5 == 4:
+            generator_checkpoint = 'generator_checkpoint_' + str(epoch) + '.pth'
+            torch.save(generator.state_dict(), os.path.join(opt.model_save_loc,generator_checkpoint))
     torch.save(discriminator.state_dict(), 'out/discriminator_final.pth')
 
 if __name__ == "__main__":
