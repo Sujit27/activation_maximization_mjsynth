@@ -75,8 +75,9 @@ class Generator(nn.Module):
 
         #return F.relu(self.conv3(x))
         x = self.conv3(x)
-        #x = torch.clamp(x,-1,1)
-        return F.tanh(x)
+        x = torch.clamp(x,-1,1)
+        #return torch.tanh(x)
+        return x
    
 class Discriminator(nn.Module):
     def __init__(self):
@@ -84,7 +85,7 @@ class Discriminator(nn.Module):
         self.conv1 = SpectralNorm(nn.Conv2d(1, 64, 3, stride=1, padding=1))
         self.conv2 = SpectralNorm(nn.Conv2d(64, 64, 3, stride=2, padding=1))
         self.conv3 = SpectralNorm(nn.Conv2d(64, 64, 3, stride=2, padding=1))
-        self.fc = SpectralNorm(nn.Linear(64*32*8,2))
+        self.fc = SpectralNorm(nn.Linear(64*32*8,1))
 
 
     def forward(self, x):

@@ -24,7 +24,7 @@ import dagtasets as dg
 from real_dream_dataset import *
 from dict_net import *
 from helper_functions import *
-from models import Generator, Discriminator
+from models import *
 #from utils import Visualizer
 
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -76,18 +76,17 @@ def main():
     #print(discriminator)
 
     # Define Loss function
-    adversarial_criterion = nn.CrossEntropyLoss()
+    #adversarial_criterion = nn.CrossEntropyLoss()
+    adversarial_criterion = nn.BCELoss()
 
     # targets for dream and real images
-    zeros_const = torch.zeros(opt.batchSize,dtype=torch.long)
-    ones_const = torch.ones(opt.batchSize,dtype=torch.long)
-
+#    zeros_label = torch.zeros(opt.batchSize,dtype=torch.long)
+#    ones_label = torch.ones(opt.batchSize,dtype=torch.long)
+    
     # move tensors to cuda
     generator.to(device)
     discriminator.to(device)
-    zeros_const = zeros_const.to(device)
-    ones_const = ones_const.to(device)
-
+    
     # Define optimizers
     optim_generator = optim.Adam(generator.parameters(), lr=opt.generatorLR)
     optim_discriminator = optim.Adam(discriminator.parameters(), lr=opt.discriminatorLR)
@@ -105,6 +104,18 @@ def main():
 
             dream_labels = word_to_label(words)
             dream_labels = torch.LongTensor(dream_labels)
+            
+            # create labels for dream and real images, set soft targets for discriminator
+            random_flip = random.uniform(0,1)
+            if random_flip > 0.05:
+                zeros_label = torch.FloatTensor(opt.batchSize,1).uniform_(0.0,0.15)
+                ones_label = torch.FloatTensor(opt.batchSize,1).uniform_(0.85,1.0)
+            else:
+                ones_label = torch.FloatTensor(opt.batchSize,1).uniform_(0.0,0.15)
+                zero_label = torch.FloatTensor(opt.batchSize,1).uniform_(0.85,1.0)
+
+            zeros_label = zeros_label.to(device)
+            ones_label = ones_label.to(device)
 
             real_images = real_images.to(device)
             dream_images = dream_images.to(device)
@@ -117,18 +128,24 @@ def main():
             ######### Train discriminator #########
             discriminator.zero_grad()
 
-            real_output = discriminator(real_images)
-            dream_output = discriminator(dream_images_generated)
+#            real_output = discriminator(real_images)
+#            dream_output = discriminator(dream_images_generated)
+            
+            real_output = torch.sigmoid(discriminator(real_images))
+            dream_output = torch.sigmoid(discriminator(dream_images_generated))
 
-            discriminator_loss = (adversarial_criterion(real_output, ones_const) + adversarial_criterion(dream_output, zeros_const))/opt.batchSize
+            discriminator_loss = (adversarial_criterion(real_output, ones_label) + adversarial_criterion(dream_output, zeros_label))/opt.batchSize
             
             discriminator_loss.backward(retain_graph=True)
             optim_discriminator.step()
 
             ######### Train generator #########
+            ones_label = torch.FloatTensor(opt.batchSize,1).uniform_(0.99999,1.0)
+            ones_label = ones_label.to(device)
+
             generator_dream_loss = find_dream_acc_loss(network,dream_images_generated,dream_labels,loss_criterion)/opt.batchSize
             generator.zero_grad()
-            generator_adv_loss = (adversarial_criterion(dream_output, ones_const))/opt.batchSize
+            generator_adv_loss = (adversarial_criterion(dream_output, ones_label))/opt.batchSize
 
             generator_loss = opt.gen_loss_ratio * generator_dream_loss + (1-opt.gen_loss_ratio) * generator_adv_loss
             #generator_loss = generator_dream_loss
