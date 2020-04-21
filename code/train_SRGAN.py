@@ -23,6 +23,7 @@ import torchvision.transforms as transforms
 import dagtasets as dg
 from real_dream_dataset import *
 from dict_net import *
+from helper_functions import *
 from models import Generator, Discriminator
 #from utils import Visualizer
 
@@ -33,7 +34,7 @@ parser.add_argument('--real_dataroot', type=str, default='/var/tmp/on63ilaw/mjsy
 parser.add_argument('--dream_dataroot', type=str, default='/var/tmp/on63ilaw/mjsynth/sample_dreams_dataset', help='path to dream images dataset')
 parser.add_argument('--workers', type=int, default=2, help='number of data loading workers')
 parser.add_argument('--batchSize', type=int, default=32, help='input batch size')
-parser.add_argument('--nEpochs', type=int, default=20, help='number of epochs to train for')
+parser.add_argument('--nEpochs', type=int, default=5, help='number of epochs to train for')
 parser.add_argument('--disp', type=int, default=50, help='number of iterations for display of losses')
 parser.add_argument('--generatorLR', type=float, default=0.00001, help='learning rate for generator')
 parser.add_argument('--discriminatorLR', type=float, default=0.00001, help='learning rate for discriminator')
@@ -100,7 +101,10 @@ def main():
         for i, data in enumerate(data_loader):
 
             # extract images
-            real_images,dream_images,dream_labels= data
+            real_images,dream_images,words= data
+
+            dream_labels = word_to_label(words)
+            dream_labels = torch.LongTensor(dream_labels)
 
             real_images = real_images.to(device)
             dream_images = dream_images.to(device)
@@ -127,17 +131,18 @@ def main():
             generator_adv_loss = (adversarial_criterion(dream_output, ones_const))/opt.batchSize
 
             generator_loss = opt.gen_loss_ratio * generator_dream_loss + (1-opt.gen_loss_ratio) * generator_adv_loss
-            
+            #generator_loss = generator_dream_loss
             generator_loss.backward()
             optim_generator.step()  
 
             if i % opt.disp == 0:
                 print("{},{},{}".format(generator_adv_loss.item(),generator_dream_loss.item(),discriminator_loss.item())) 
+                #print("{}".format(generator_loss.item())) 
         # Do checkpointing
         if epoch % 5 == 4:
             generator_checkpoint = 'generator_checkpoint_' + str(epoch) + '.pth'
             torch.save(generator.state_dict(), os.path.join(opt.model_save_loc,generator_checkpoint))
-    torch.save(discriminator.state_dict(), 'out/discriminator_final.pth')
+#    torch.save(discriminator.state_dict(), 'out/discriminator_final.pth')
 
 if __name__ == "__main__":
     main()

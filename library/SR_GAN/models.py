@@ -73,31 +73,11 @@ class Generator(nn.Module):
 
         #x = self.upsample(x)
 
-        return F.relu(self.conv3(x))
-
-#class Discriminator(nn.Module):
-#    def __init__(self):
-#        super(Discriminator, self).__init__()
-#        self.conv1 = nn.Conv2d(1, 64, 3, stride=1, padding=1)
-#        self.bn1 = nn.BatchNorm2d(64)
-#        self.conv2 = nn.Conv2d(64, 64, 3, stride=2, padding=1)
-#        self.bn2 = nn.BatchNorm2d(64)
-#        self.conv3 = nn.Conv2d(64, 64, 3, stride=2, padding=1)
-#        self.bn3 = nn.BatchNorm2d(64)
-#        self.fc1 = nn.Linear(64*32*8,256)
-#        self.bn4 = nn.BatchNorm1d(256)
-#
-#        self.final = nn.Linear(256,2)
-#
-#    def forward(self, x):
-#        x = F.relu(self.bn1(self.conv1(x)))
-#        x = F.relu(self.bn2(self.conv2(x)))
-#        x = F.relu(self.bn3(self.conv3(x)))
-#        x = x.view(-1,64*32*8)
-#        
-#        x = F.relu(self.bn4(self.fc1(x)))
-#        return self.final(x)
-    
+        #return F.relu(self.conv3(x))
+        x = self.conv3(x)
+        #x = torch.clamp(x,-1,1)
+        return F.tanh(x)
+   
 class Discriminator(nn.Module):
     def __init__(self):
         super(Discriminator, self).__init__()

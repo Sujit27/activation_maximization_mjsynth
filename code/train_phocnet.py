@@ -188,7 +188,7 @@ def evaluate_cnn(dataset, class_ids, outputs):
     indices_predicted = np.argmax(output_similarity,0)
     class_ids_predicted = []
     for index in indices_predicted:
-        _,_,class_id_predicted = dataset[index]
+        _,_,class_id_predicted,_ = dataset[index]
         class_ids_predicted.append(class_id_predicted)
 
     class_ids_predicted = np.array(class_ids_predicted).flatten()

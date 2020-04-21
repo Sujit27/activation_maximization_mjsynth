@@ -40,8 +40,9 @@ class RealDreamDataset(Dataset):
         real_image,_ = self.real_dataset[index]
         dream_image,_ = self.dream_dataset[index]
 
-        word = self.dream_dataset.filenames[index].split("_")[1]
+        word = str.lower(self.dream_dataset.filenames[index].split("_")[1])
         target_label = self.label_encoder.transform([word])
 
-        return real_image,dream_image,target_label[0]
+        #return real_image,dream_image,target_label[0]
+        return real_image,dream_image,word
 

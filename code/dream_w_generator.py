@@ -36,8 +36,10 @@ dreamer.show(im,name)
 for i in range(len(gen_models)):
     im  = dreamer.batch_dream(labels=labels)
     generator.load_state_dict(torch.load(gen_models[i]))
+    generator.eval()
     generator.to(device)
     im2 = generator(im)
+    #im2 = im2*dreamer.data_std[0] + dreamer.data_mean[0]
 
     name = "_".join(word for word in words) + str(i) + ".png"
     name = os.path.join(gen_models_loc,name)

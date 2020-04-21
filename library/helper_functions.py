@@ -44,6 +44,15 @@ def create_dicts(data_root,transform):
     return ds, labels_and_indices_dict, labels_dict, labels_inv_dict
 
 
+def word_to_label(word_list):
+    labels_dict = csv_to_dict("../library/labels_full.csv")
+    labels_inv_dict = {val[1]:key for key,val in labels_dict.items()} 
+    label_num_list = []
+    for word in word_list:
+        label_num_list.append(labels_inv_dict[word])
+
+    return label_num_list
+
 
 def label_to_word(label_num_list):
     labels_dict = csv_to_dict("../library/labels_full.csv")
