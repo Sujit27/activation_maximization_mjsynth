@@ -56,11 +56,11 @@ class DictNet(nn.Module):
             # 1st fc layer
             nn.Linear(2*8*conv_capacity*32, fc_capacity*32),
             nn.BatchNorm1d(fc_capacity*32),
-            nn.ReLU(),
-            # 2nd fc layer
-            nn.Linear(fc_capacity*32, fc_capacity*32),
-            nn.BatchNorm1d(fc_capacity*32),
             nn.ReLU())
+            # 2nd fc layer
+            #            nn.Linear(fc_capacity*32, fc_capacity*32),
+            #            nn.BatchNorm1d(fc_capacity*32),
+            #            nn.ReLU())
         
         self.final_layer = nn.Linear(fc_capacity*32, num_classes)
         #self.softmax = nn.Softmax(dim=1)

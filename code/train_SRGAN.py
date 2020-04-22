@@ -30,15 +30,17 @@ from models import *
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('--network_model', type=str, default='../models2/net_1000_0.001_200_0.0.pth', help='Trained classifier network')
 parser.add_argument('--model_save_loc', type=str, default='.', help='location where the generator checkpoints are saved')
+parser.add_argument('--load_gen', type=str, default=None, help='location of previous trained generator')
+parser.add_argument('--load_dis', type=str, default=None, help='location of previous trained discriminator')
 parser.add_argument('--real_dataroot', type=str, default='/var/tmp/on63ilaw/mjsynth', help='path to real images dataset')
 parser.add_argument('--dream_dataroot', type=str, default='/var/tmp/on63ilaw/mjsynth/sample_dreams_dataset', help='path to dream images dataset')
 parser.add_argument('--workers', type=int, default=2, help='number of data loading workers')
 parser.add_argument('--batchSize', type=int, default=32, help='input batch size')
-parser.add_argument('--nEpochs', type=int, default=5, help='number of epochs to train for')
+parser.add_argument('--nEpochs', type=int, default=50, help='number of epochs to train for')
 parser.add_argument('--disp', type=int, default=50, help='number of iterations for display of losses')
 parser.add_argument('--generatorLR', type=float, default=0.00001, help='learning rate for generator')
 parser.add_argument('--discriminatorLR', type=float, default=0.00001, help='learning rate for discriminator')
-parser.add_argument('--gen_loss_ratio', type=float, default=0.7, help='ratio of two different types of losses for the generator, should be less than one ')
+parser.add_argument('--gen_loss_ratio', type=float, default=0.5, help='ratio of two different types of losses for the generator, should be less than one ')
 parser.add_argument('--nGPU', type=int, default=1, help='number of GPUs to use')
 
 opt = parser.parse_args()
@@ -72,6 +74,10 @@ def main():
     # create generator and discriminator
     generator = Generator()
     discriminator = Discriminator()
+    if opt.load_gen is not None:
+        generator.load_state_dict(torch.load(opt.load_gen))
+    if opt.load_dis is not None:
+        discriminator.load_state_dict(torch.load(opt.load_dis))
     #print(generator)
     #print(discriminator)
 
@@ -159,7 +165,9 @@ def main():
         if epoch % 5 == 4:
             generator_checkpoint = 'generator_checkpoint_' + str(epoch) + '.pth'
             torch.save(generator.state_dict(), os.path.join(opt.model_save_loc,generator_checkpoint))
-#    torch.save(discriminator.state_dict(), 'out/discriminator_final.pth')
+            discriminator_checkpoint = 'discriminator_checkpoint_' + str(epoch) + '.pth'
+            torch.save(discriminator.state_dict(), os.path.join(opt.model_save_loc,discriminator_checkpoint))
+
 
 if __name__ == "__main__":
     main()
