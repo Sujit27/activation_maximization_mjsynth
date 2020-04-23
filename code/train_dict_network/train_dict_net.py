@@ -1,28 +1,31 @@
 import sys
-sys.path.append("../library/")
+sys.path.append("../../")
 import dagtasets as dg
-from dict_net import *
-from helper_functions import *
+from library.dict_network.dict_net import *
+from library.helper_functions import *
+from library.label_dicts import create_label_dicts
 from torch.utils.data  import SubsetRandomSampler
 from torch import optim
 import csv
 import os
+from pathlib import Path
+
 import argparse
 
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
 parser.add_argument('-n',type=int,default = None, dest='num_labels',help='Store number of labels')
 parser.add_argument('-m',type=str,default = None, dest='existing_model_location',help='Full path of existing model')
-parser.add_argument('-g',type=bool,default = False, dest='grow_prev_model',help='Bool whether to grow the existing model')
-parser.add_argument('-o',type=str,default = "../models2", dest='output_path',help='Output model location')
+parser.add_argument('--grow',default = False, action = 'store_true',help='Bool whether to grow the existing model')
+parser.add_argument('--dicts',default = False, action = 'store_true',help='Bool whether to create fresh label indices dictionary at the data root. If training on the same data as previous, it saves time to set this False')
+parser.add_argument('-o',type=str,default = "out/", dest='output_path',help='Output model location')
 parser.add_argument('-d',type=str,default = "/var/tmp/on63ilaw/mjsynth/", dest='data_root',help='input data location')
 parser.add_argument('-lr',type=float,default = 0.001, dest='lr',help='Learning rate')
 parser.add_argument('-ne',type=int,default = 30, dest='num_epochs',help='Number of epochs to train')
-parser.add_argument('--nice',type=bool,default = True, dest='nice',help='Bool whether to nice')
+parser.add_argument('--nice',default = True, action = 'store_true',help='Bool whether to nice')
 
 
 cmd_args = parser.parse_args()
-
 
 
 def train_model(grow_prev_model,output_path,data_root,transform,prev_trained_model_name=None,num_labels=None,lr=0.005,batch_size=16,weight_decay=0.001,num_epochs=1):
@@ -133,11 +136,12 @@ def train_model(grow_prev_model,output_path,data_root,transform,prev_trained_mod
     return score_training_list,score_validation_list
 
 def main():
-    # Can either train a model from start given the number of labels :$ python3 train.py 500
-    # Or can grow an existing trained model ( see ../library/dict_net.py for more details ) by increasing the number of labels to a specified number :$ python3 train.py 1000 ../models/net_###.pth
+    print(cmd_args)
+    # Can either train a model from start given the number of labels 
+    # Or can grow an existing trained model ( see library/dict_network for more details ) by increasing the number of labels to a specified number 
     num_labels = cmd_args.num_labels
     prev_trained_model_name = cmd_args.existing_model_location
-    grow_prev_model = cmd_args.grow_prev_model
+    grow_prev_model = cmd_args.grow
     output_path = cmd_args.output_path
     data_root = cmd_args.data_root
     lr = cmd_args.lr
@@ -166,6 +170,14 @@ def main():
     else:
         batch_size = int(num_labels/5) 
     batch_size = min(batch_size,256)
+
+    # create dictionary csv of labels and indices at the data root 
+    if cmd_args.dicts is True:
+        create_label_dicts(data_root)
+
+    # create output directory for saving model if does not exist already
+    Path(output_path).mkdir(parents=True,exist_ok=True)
+
     # train
     score_training_list,score_validation_list = train_model(grow_prev_model,output_path,data_root,transform,prev_trained_model_name=prev_trained_model_name,num_labels=num_labels,lr = lr,batch_size=batch_size,weight_decay=weight_decay,num_epochs=num_epochs)
     

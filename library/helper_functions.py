@@ -1,4 +1,7 @@
 #from dict_net import *
+import torch
+import torch.utils.data
+import numpy as np
 import os
 import re
 import dagtasets as dg
@@ -37,15 +40,16 @@ def measure_accuracy(data,device,net,labels_inv_dict):
 def create_dicts(data_root,transform):
     # create dictionaries from csv files present in the library
     ds = dg.mjsynth.MjSynthWS(data_root,transform)
-    labels_and_indices_dict =  csv_to_dict('../library/labels_and_indices.csv')
-    labels_dict = csv_to_dict('../library/labels_1.csv')
-    labels_inv_dict = csv_to_dict('../library/labels_2.csv')
+    labels_and_indices_dict =  csv_to_dict(os.path.join(data_root,'labels_and_indices.csv'))
+    labels_dict = csv_to_dict(os.path.join(data_root,'labels_1.csv'))
+    labels_inv_dict = csv_to_dict(os.path.join(data_root,'labels_2.csv'))
 
     return ds, labels_and_indices_dict, labels_dict, labels_inv_dict
 
 
 def word_to_label(word_list):
-    labels_dict = csv_to_dict("../library/labels_full.csv")
+    data_root = "var/tmp/on63ilaw/mjsynth"
+    labels_dict = csv_to_dict(os.path.join(data_root,"labels_full.csv"))
     labels_inv_dict = {val[1]:key for key,val in labels_dict.items()} 
     label_num_list = []
     for word in word_list:
@@ -55,7 +59,8 @@ def word_to_label(word_list):
 
 
 def label_to_word(label_num_list):
-    labels_dict = csv_to_dict("../library/labels_full.csv")
+    data_root = "var/tmp/on63ilaw/mjsynth"
+    labels_dict = csv_to_dict(os.path.join(data_root,"labels_full.csv"))
     word_list = []
     for label_num in label_num_list:
         word_list.append(labels_dict[label_num][1])
