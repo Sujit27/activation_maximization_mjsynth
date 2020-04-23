@@ -14,9 +14,10 @@ from scipy import ndimage
 import math
 import os
 import random
-from dict_net import *
-from discrim_net import *
-from helper_functions import *
+#from dict_network.dict_net import *
+from .dict_network.dict_net import DictNet
+#from discrim_net import *
+from .helper_functions import *
 
 # Created by Sujit Sahoo, 13 Feb 2020
 # sujit.sahoo@fau.de

@@ -1,4 +1,4 @@
-from dict_net import *
+#from dict_net import *
 import os
 import re
 import dagtasets as dg
