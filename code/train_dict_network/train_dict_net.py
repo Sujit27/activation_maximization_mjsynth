@@ -8,6 +8,7 @@ from torch.utils.data  import SubsetRandomSampler
 from torch import optim
 import csv
 import os
+import glob
 from pathlib import Path
 
 import argparse
@@ -173,6 +174,8 @@ def main():
 
     # create dictionary csv of labels and indices at the data root 
     if cmd_args.dicts is True:
+        for csvpath in glob.iglob(os.path.join(data_root,'*.csv')):
+            os.remove(csvpath)
         create_label_dicts(data_root)
 
     # create output directory for saving model if does not exist already

@@ -48,7 +48,7 @@ def create_dicts(data_root,transform):
 
 
 def word_to_label(word_list):
-    data_root = "var/tmp/on63ilaw/mjsynth"
+    data_root = "/var/tmp/on63ilaw/mjsynth"
     labels_dict = csv_to_dict(os.path.join(data_root,"labels_full.csv"))
     labels_inv_dict = {val[1]:key for key,val in labels_dict.items()} 
     label_num_list = []
@@ -59,7 +59,7 @@ def word_to_label(word_list):
 
 
 def label_to_word(label_num_list):
-    data_root = "var/tmp/on63ilaw/mjsynth"
+    data_root = "/var/tmp/on63ilaw/mjsynth"
     labels_dict = csv_to_dict(os.path.join(data_root,"labels_full.csv"))
     word_list = []
     for label_num in label_num_list:
