@@ -75,11 +75,11 @@ def train():
     # prepare datset loader
 
     train_data_set = PhocDataset(args.train_data_root)
-    train_loader = DataLoader(train_data_set,batch_size=args.batch_size,shuffle=True,num_workers=8)
+    train_loader = DataLoader(train_data_set,batch_size=args.batch_size,shuffle=True,num_workers=0)
 
     if args.test_data_root is not None:
         test_data_set = PhocDataset(args.test_data_root)
-        test_loader = DataLoader(test_data_set,batch_size=args.batch_size,shuffle=False,num_workers=8)
+        test_loader = DataLoader(test_data_set,batch_size=args.batch_size,shuffle=False,num_workers=0)
 
     # prepare the dream reader
     lex_txt_file = "../../lexicon.txt"
