@@ -9,6 +9,7 @@ import argparse
 import os
 import glob
 from pathlib import Path
+import shutil
 
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
@@ -60,6 +61,15 @@ def main():
             print('{} dreams created'.format(i))
 
     create_annotation_txt(output_path)
+
+    raw_path = os.path.join(output_path,'raw')
+    Path(raw_path).mkdir(parents=True,exist_ok=True)
+
+    files = os.listdir(output_path)
+
+    for f in files:
+        shutil.move(os.path.join(output_path,f),raw_path)
+
     
 if __name__ == "__main__":
     main()

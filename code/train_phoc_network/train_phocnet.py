@@ -1,8 +1,8 @@
 import sys
-sys.path.append("../library")
-sys.path.append("../library/phoc_net")
+sys.path.append("../../")
 import argparse
 import logging
+from pathlib import Path
 
 import numpy as np
 from sklearn.metrics import accuracy_score
@@ -15,10 +15,10 @@ from torch.utils.data  import SubsetRandomSampler
 import tqdm
 
 import copy
-from phoc_dataset import *
-from cosine_loss import *
-from phoc_net import *
-from retrieval import *
+from library.phoc_network.phoc_dataset import *
+from library.phoc_network import cosine_loss
+from library.phoc_network.phoc_net import *
+from library.dream_reader import *
 
 
 # CUDA for PyTorch
@@ -31,12 +31,13 @@ def train():
     # argument parsing
     parser = argparse.ArgumentParser()   
     # input data and output model save locations arguments
-    parser.add_argument('--data_root', '-dr', action='store', type=str, default="/var/tmp/on63ilaw/mjsynth/",help='Location of input data. Default: /var/tmp/on63ilaw/mjsynth')
-    parser.add_argument('--output_dir', '-od', action='store', type=str, default="../models",help='Location of saving output model. Default: ../models')
+    parser.add_argument('--train_data_root', '-tr', action='store', type=str, default=None,help='Location of input dream data for training. Default: None')
+    parser.add_argument('--test_data_root', '-ts', action='store', type=str, default=None,help='Location of input dream data for test. Default: None')
+    parser.add_argument('--output_dir', '-od', action='store', type=str, default="out",help='Location of saving output model. Default: out')
     parser.add_argument('--save_model', '-sm', action='store', type=str, default="PhocNet.pt",help='Name of the output model. Default: PhocNet.pt')
     # - train arguments
-    parser.add_argument('--num_epochs', '-ep', action='store', type=int, default=50,
-                        help='Number of epochs for training. Default: 50')
+    parser.add_argument('--num_epochs', '-ep', action='store', type=int, default=200,
+                        help='Number of epochs for training. Default: 200')
 
     parser.add_argument('--learning_rate', '-lr',action='store',type=float, default=0.0001,
             help='Learning rate for training. Default: 0.0001')
@@ -48,12 +49,8 @@ def train():
                         help='Epsilon if solver is Adam. Default: 1e-8')
     parser.add_argument('--solver_type', '-st', choices=['SGD', 'Adam'], default='Adam',
                         help='Which solver type to use. Possible: SGD, Adam. Default: Adam')
-    parser.add_argument('--display', action='store', type=int, default=50,
-                        help='The number of batches after which to display the loss values. Default: 50')
-    parser.add_argument('--test_interval', action='store', type=int, default=50,
-                        help='The number of batches after which to evaluate the PHOCNet. Default: 50')
-    parser.add_argument('--batch_size', '-bs', action='store', type=int, default=128,
-                        help='The batch size after which the gradient is computed. Default: 128')
+    parser.add_argument('--batch_size', '-bs', action='store', type=int, default=64,
+                        help='The batch size after which the gradient is computed. Default: 64')
     parser.add_argument('--weight_decay', '-wd', action='store', type=float, default=0.0000,
                         help='The weight decay for SGD training. Default: 0.0000')
     
@@ -63,12 +60,8 @@ def train():
                         type=lambda str_list: [int(elem) for elem in str_list.split(',')],
                         default='1,2,4,8',
                         help='The comma seperated list of PHOC unigram levels. Default: 1,2,4,8')
-    parser.add_argument('--num_labels', '-nl', action='store', type=int, default=None,
-                        help='The number of labels ')
 
-    
     args = parser.parse_args()
-
 
     # print out the used arguments
     logger.info('###########################################')
@@ -77,33 +70,23 @@ def train():
         logger.info('%s: %s', str(key), str(value))
     logger.info('###########################################')
 
+    Path(args.output_dir).mkdir(parents=True,exist_ok=True)
+
     # prepare datset loader
 
-    #train_data_set = PhocDataset('/var/tmp/on63ilaw/mjsynth',args.num_word_labels)
-    train_data_set = PhocDataset(args.data_root)
+    train_data_set = PhocDataset(args.train_data_root)
+    train_loader = DataLoader(train_data_set,batch_size=args.batch_size,shuffle=True,num_workers=8)
 
-    # split training and validation data
-    validation_split = 0.1
-    dataset_size = len(train_data_set)
-    indices = list(range(dataset_size))
-    split = int(np.floor(validation_split * dataset_size))
+    if args.test_data_root is not None:
+        test_data_set = PhocDataset(args.test_data_root)
+        test_loader = DataLoader(test_data_set,batch_size=args.batch_size,shuffle=False,num_workers=8)
 
-    shuffle_dataset = True
-    #random_seed= np.random.randint(100)
-    random_seed = 0
-
-    if shuffle_dataset :
-        np.random.seed(random_seed)
-        np.random.shuffle(indices)
-    train_indices, val_indices = indices[split:], indices[:split]
-
-    train_sampler = SubsetRandomSampler(train_indices)
-    valid_sampler = SubsetRandomSampler(val_indices)
-
-
-    train_loader = DataLoader(train_data_set,batch_size=args.batch_size,sampler=train_sampler,num_workers=8)
-    val_loader = DataLoader(train_data_set,batch_size=args.batch_size,sampler=valid_sampler,num_workers=8)
-
+    # prepare the dream reader
+    lex_txt_file = "../../lexicon.txt"
+    with open(lex_txt_file) as f:
+        lex_list = f.readlines()
+    lex_list = [word[:-1] for word in lex_list] # deleting 'n at the end of each line
+    dream_reader = DreamReader(lex_list)
 
     # load CNN
     logger.info('Preparing PHOCNet...')
@@ -112,14 +95,7 @@ def train():
 
     cnn.init_weights()
 
-
-    loss_selection = 'BCE' #or 'cosine' 
-    if loss_selection == 'BCE':
-        criterion = nn.BCEWithLogitsLoss(size_average=True)
-    elif loss_selection == 'cosine':
-        criterion = CosineLoss(size_average=False, use_sigmoid=True)
-    else:
-        raise ValueError('not supported loss function')
+    criterion = nn.BCEWithLogitsLoss(size_average=True)
 
     # move CNN to GPU
     cnn.to(device)
@@ -135,65 +111,58 @@ def train():
                                     weight_decay=args.weight_decay)
 
 
-    logger.info('Training:')
     for epoch in range(args.num_epochs):
         cnn.train()
         training_acc_list = []
-        validation_acc_list = []
+        test_acc_list = []
+        training_loss_list = []
+        test_loss_list = []
         for i,data in enumerate(train_loader,0):
-            imgs,embeddings,class_ids,_ = data
+            imgs,embeddings,_,words = data
 
             imgs = imgs.to(device)
             embeddings = embeddings.to(device)
-            class_ids = class_ids.to(device)
 
             optimizer.zero_grad()
             outputs = cnn(imgs)
 
-            loss = criterion(outputs, embeddings) * args.batch_size
+            loss = criterion(outputs, embeddings) / args.batch_size
             loss.backward()
             optimizer.step()
 
-            if i % args.display == 0:
-                print("Epoch: {}, Batch : {}, Loss : {}".format(epoch,i,loss.item()))
-            if i % args.test_interval == 0:
-                training_acc = evaluate_cnn(train_data_set,class_ids,outputs)
-                print("Traning accuracy : {}".format(training_acc))
-                training_acc_list.append(training_acc)
-                #evaluate_cnn(train_data_set,class_ids,embeddings) # to check that evaluate_cnn work
+            training_acc = evaluate_cnn(dream_reader,outputs,words)
+            training_loss_list.append(loss.item())
+            training_acc_list.append(training_acc)
 
-        cnn.eval()
-        for i,data in enumerate(val_loader,0):
-            if i % 20 == 0:
-                imgs,embeddings,class_ids,_ = data
+        print("Epoch : {}, Training loss: {}, Training accuracy: {}".format(epoch,sum(training_loss_list)/len(training_loss_list),sum(training_acc_list)/len(training_acc_list)))
+        #print("End of training epoch :",epoch)
+        
+        if args.test_data_root is not None:
+            if epoch % 10 == 9:
+                cnn.eval()
+                for i,data in enumerate(test_loader,0):
+                    imgs,embeddings,_,words = data
 
-                imgs = imgs.to(device)
-                embeddings = embeddings.to(device)
-                class_ids = class_ids.to(device)
+                    imgs = imgs.to(device)
+                    embeddings = embeddings.to(device)
 
-                outputs = cnn(imgs)
-                validation_acc = evaluate_cnn(train_data_set,class_ids,outputs)
-                validation_acc_list.append(validation_acc)
+                    outputs = cnn(imgs)
+                    test_loss = criterion(outputs, embeddings) / args.batch_size
+                    test_acc = evaluate_cnn(dream_reader,outputs,words)
+                    test_loss_list.append(test_loss.item())
+                    test_acc_list.append(test_acc)
 
-        print("End of epoch : {}, Training accuracy : {}, Validation accuracy : {}".format(epoch,sum(training_acc_list)/len(training_acc_list),sum(validation_acc_list)/len(validation_acc_list)))
-
+                print("Epoch : {}, Validation loss: {}, Validation accuracy: {}".format(epoch,sum(test_loss_list)/len(test_loss_list),sum(test_acc_list)/len(test_acc_list)))
 
 
     torch.save(cnn.state_dict(), os.path.join(args.output_dir,args.save_model))
 
-def evaluate_cnn(dataset, class_ids, outputs):
-    class_ids = class_ids.cpu()
-    outputs = outputs.cpu().detach().numpy()
-    output_similarity = np.dot(dataset.word_string_embeddings,np.transpose(outputs))
-    indices_predicted = np.argmax(output_similarity,0)
-    class_ids_predicted = []
-    for index in indices_predicted:
-        _,_,class_id_predicted,_ = dataset[index]
-        class_ids_predicted.append(class_id_predicted)
+def evaluate_cnn(dream_reader,output,words):
+    indices_pred,words_pred = dream_reader.read_from_network_output(output)
+    indices_target = dream_reader.convert_words_to_indices(words)
 
-    class_ids_predicted = np.array(class_ids_predicted).flatten()
-    acc_score = accuracy_score(class_ids,class_ids_predicted)
-    #print("Training accuracy score :",acc_score)
+    acc_score = accuracy_score(indices_target,indices_pred)
+
     return acc_score
 
 if __name__ == '__main__':
