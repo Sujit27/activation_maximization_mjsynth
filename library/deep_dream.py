@@ -109,9 +109,9 @@ class DeepDream():
             elif loss_type == 2:
                 loss = -out[0,label]
             elif loss_type == 3:
-                loss = F.softmax(out)[0,label]
+                loss = F.softmax(out,dim=1)[0,label]
             elif loss_type == 4:
-                loss = - F.softmax(out)[0,label]
+                loss = - torch.log(F.softmax(out,dim=1)[0,label])
             elif loss_type == 5:
                 target = torch.zeros(1,dtype=torch.long)
                 target[0] = label
