@@ -1,3 +1,5 @@
+import sys
+sys.path.append("../")
 import os
 import random
 import math
@@ -12,8 +14,8 @@ import matplotlib.pyplot as plt
 from PIL import Image, ImageFilter, ImageChops
 from torch.nn import functional as F
 
-from .dict_network import dict_net
-from ..deep_dream_mnist import network_mnist
+from dict_network.dict_net import *
+from deep_dream_mnist.network_mnist import *
 
 def create_random_image(image_dim,img_is2D,random_seed=0):
     '''Creates a random image of of shape given by image_dim which should be a tuple of length 3 HxWxC '''
@@ -148,14 +150,14 @@ class GaussianFilter:
         
 def main():
     # create deep dream images with DictNet
-    network = dict_net.DictNet(1000)
+    network = DictNet(1000)
     network.load_state_dict(torch.load("../code/train_dict_network/out3/net_1000_0.001_200_0.0.pth"))
     output_batch = dream(network,[0,1,2,3],(32,128,1),(0.47,),(0.14,))
     #display_grid(output_batch)
     save_image(output_batch,"dreams_mjsynth.png")
     
     # create deep dream images with MNIST
-    network = network_mnist.Net()
+    network = Net()
     network.load_state_dict(torch.load('../deep_dream_mnist/mnist.pth'))
     output_batch = dream(network,[0,4,2,8],(28,28,1),(0.13,),(0.31,))
     #display_grid(output_batch)

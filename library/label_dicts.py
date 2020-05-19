@@ -1,7 +1,7 @@
 #import sys
 #sys.path.append("../library/")
 #from dict_net import *
-from .helper_functions import *
+from helper_functions import *
 import csv
 import ast
 import argparse
