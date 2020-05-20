@@ -1,6 +1,7 @@
 import sys
 sys.path.append("../")
 import os
+import time
 import random
 import math
 import scipy
@@ -68,7 +69,7 @@ def dream(network,labels,image_dim,mean,std,nItr=100,lr=0.1,kernel_size=3,sigma=
     
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     network,gaussian_filter = move_network_to_device(network,gaussian_filter,device)
-
+    
     image_tensor = dream_kernel(network,gaussian_filter,image_dim,labels,mean,std,nItr,lr,device)
 
     return image_tensor
@@ -88,21 +89,35 @@ def dream_kernel(network,gaussian_filter,image_dim,labels,mean,std,nItr,lr,devic
     img = Variable(img,requires_grad=True)
     
     for _ in range(nItr):
+        #start = time.time()
         out = network(img)
+        #end = time.time()
+        #print("Time for forward pass ",end-start)
         
         loss = 0
         for index,label in enumerate(labels):
             loss += out[index,label]
 
+        #start = time.time()
         loss.backward()
+        #end = time.time()
+        #print("Time for backprop ",end-start)
 
-        #avg_grad = np.abs(img.grad.data.cpu().numpy()).mean()
+
+        #start = time.time()
         avg_grad = torch.mean(torch.abs(img.grad.data)).item()
         norm_lr = lr / (avg_grad + 1e-20)
         img.data += norm_lr * img.grad.data
         img.data = torch.clamp(img.data,-1,1)
+        #end = time.time()
+        #print("Time for update ",end-start)
 
+
+        #start = time.time()
         img.data = gaussian_filter(img.data)
+        #end = time.time()
+        #print("Time for regularization",end-start)
+
 
         img.grad.data.zero_()
     img = postprocess_batch(img,mean,std,img_is2D,device)

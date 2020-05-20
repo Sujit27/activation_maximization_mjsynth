@@ -6,6 +6,8 @@
 
 *.csv
 
+*.pth
+
 __pycache__/
 
 sample_dreams_dataset_6000/
