@@ -39,7 +39,7 @@ def preprocess_image(input_image,mean,std):
 
     return preprocess(input_image)
     
-def postprocess_batch(image_tensor,mean,std,img_is2D):
+def postprocess_batch(image_tensor,mean,std,img_is2D,device):
     '''Multiplies and then adds channelwise the tensor with the std and mean tuples respectively. In short, does the 
     inverse of the normalizing function in preprocess'''
     #image_dim = image_tensor.shape
@@ -47,8 +47,11 @@ def postprocess_batch(image_tensor,mean,std,img_is2D):
     if img_is2D:
         image_tensor = image_tensor*std[0] + mean[0]
     else:
-        image_tensor = image_tensor * torch.Tensor(list(std)).view(1,3,1,1) + torch.Tensor(list(mean)).view(1,3,1,1)
-        
+        std_tensor = torch.Tensor(list(std)).view(1,3,1,1).to(device)
+        mean_tensor = torch.Tensor(list(mean)).view(1,3,1,1).to(device)
+
+        image_tensor = image_tensor * std_tensor + mean_tensor
+
     return image_tensor
     
 def dream(network,labels,image_dim,mean,std,nItr=100,lr=0.1,kernel_size=3,sigma=0.5):
@@ -61,9 +64,18 @@ def dream(network,labels,image_dim,mean,std,nItr=100,lr=0.1,kernel_size=3,sigma=
     '''
     network.eval()
     img_is2D = check_if2D(image_dim)
-    
     gaussian_filter = GaussianFilter(img_is2D,kernel_size,sigma)
     
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    network,gaussian_filter = move_network_to_device(network,gaussian_filter,device)
+
+    image_tensor = dream_kernel(network,gaussian_filter,image_dim,labels,mean,std,nItr,lr,device)
+
+    return image_tensor
+
+def dream_kernel(network,gaussian_filter,image_dim,labels,mean,std,nItr,lr,device):
+    '''Creates a batch of random images and optimizes it to output high confidence for the specified labels'''
+    img_is2D = check_if2D(image_dim)
     for i in range(len(labels)):
         im = create_random_image(image_dim,img_is2D)
         im = preprocess_image(im,mean,std)
@@ -72,6 +84,7 @@ def dream(network,labels,image_dim,mean,std,nItr=100,lr=0.1,kernel_size=3,sigma=
         else:
             img = torch.cat((img,im.unsqueeze(0)),0)
     
+    img = move_img_to_device(img,device)
     img = Variable(img,requires_grad=True)
     
     for _ in range(nItr):
@@ -80,10 +93,11 @@ def dream(network,labels,image_dim,mean,std,nItr=100,lr=0.1,kernel_size=3,sigma=
         loss = 0
         for index,label in enumerate(labels):
             loss += out[index,label]
-        
+
         loss.backward()
 
-        avg_grad = np.abs(img.grad.data.cpu().numpy()).mean()
+        #avg_grad = np.abs(img.grad.data.cpu().numpy()).mean()
+        avg_grad = torch.mean(torch.abs(img.grad.data)).item()
         norm_lr = lr / (avg_grad + 1e-20)
         img.data += norm_lr * img.grad.data
         img.data = torch.clamp(img.data,-1,1)
@@ -91,10 +105,23 @@ def dream(network,labels,image_dim,mean,std,nItr=100,lr=0.1,kernel_size=3,sigma=
         img.data = gaussian_filter(img.data)
 
         img.grad.data.zero_()
-    img = postprocess_batch(img,mean,std,img_is2D)
+    img = postprocess_batch(img,mean,std,img_is2D,device)
     
     return img
-    
+
+def move_network_to_device(network,gaussian_filter,device):
+    '''moves network and gaussian filter to gpu,if available'''
+    network.to(device)
+    gaussian_filter.gaussian_filter.to(device)
+
+    return network,gaussian_filter
+
+def move_img_to_device(img,device):
+    '''moves an image tensor to gpu,if available'''
+    img = img.to(device)
+
+    return img
+
 def check_if2D(image_dim):
     '''Given a image shape returns a bool whether the image is 2D or 3D. Input tuple should be of the form HxWxC'''
     if image_dim[-1] == 1:
