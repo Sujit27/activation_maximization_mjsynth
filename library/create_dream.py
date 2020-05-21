@@ -55,7 +55,7 @@ def postprocess_batch(image_tensor,mean,std,img_is2D,device):
 
     return image_tensor
     
-def dream(network,labels,image_dim,mean,std,nItr=100,lr=0.1,kernel_size=3,sigma=0.5):
+def dream(network,labels,image_dim,mean,std,nItr=100,lr=0.1,random_seed=0,kernel_size=3,sigma=0.5):
     '''Given a trained convolutional network and a list of desired label numbers,
     function returns a batch of images (BxCxHxW) that has been optimized to output high confidence
     for that the specified labels when forward passed through the network
@@ -70,15 +70,15 @@ def dream(network,labels,image_dim,mean,std,nItr=100,lr=0.1,kernel_size=3,sigma=
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     network,gaussian_filter = move_network_to_device(network,gaussian_filter,device)
     
-    image_tensor = dream_kernel(network,gaussian_filter,image_dim,labels,mean,std,nItr,lr,device)
+    image_tensor = dream_kernel(network,gaussian_filter,image_dim,labels,mean,std,nItr,lr,random_seed,device)
 
     return image_tensor
 
-def dream_kernel(network,gaussian_filter,image_dim,labels,mean,std,nItr,lr,device):
+def dream_kernel(network,gaussian_filter,image_dim,labels,mean,std,nItr,lr,random_seed,device):
     '''Creates a batch of random images and optimizes it to output high confidence for the specified labels'''
     img_is2D = check_if2D(image_dim)
     for i in range(len(labels)):
-        im = create_random_image(image_dim,img_is2D)
+        im = create_random_image(image_dim,img_is2D,random_seed)
         im = preprocess_image(im,mean,std)
         if i== 0:
             img = im.unsqueeze(0)
