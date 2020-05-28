@@ -1,5 +1,5 @@
-#import sys
-#sys.path.append('../')
+import sys
+sys.path.append('../')
 import os
 
 import numpy as np
@@ -11,8 +11,8 @@ from torch.utils.data import Dataset
 from skimage.transform import resize
 
 import dagtasets as dg
-from ..helper_functions import *
-from .phoc_embedding import build_phoc_descriptor, get_unigrams_from_strings
+from helper_functions import *
+from phoc_network.phoc_embedding import build_phoc_descriptor, get_unigrams_from_strings
 #from cnn_ws.transformations.image_size import check_size
 #from cnn_ws.transformations.homography_augmentation import HomographyAugmentation
 

@@ -2,10 +2,10 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
-from .phoc_network.phoc_net import *
+from phoc_network.phoc_net import *
 #from .phoc_network.phoc_dataset import *
-from .phoc_network.phoc_embedding import *
-from .phoc_network.cosine_loss import *
+from phoc_network.phoc_embedding import *
+from phoc_network.cosine_loss import *
 #from sklearn.metrics import accuracy_score
 
 
