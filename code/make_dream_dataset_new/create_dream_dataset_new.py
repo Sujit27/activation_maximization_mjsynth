@@ -17,7 +17,7 @@ parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFo
 
 parser.add_argument('-n',type=int,default = 512, dest='num_samples',help='Number of dream samples to be generated')
 parser.add_argument('-b',type=int,default = 512, dest='batch_size',help='batch size for dreaming')
-parser.add_argument('-m',type=str,default = None, dest='model_name',help='Trained model for dreaming')
+parser.add_argument('-m',type=str,default = None, dest='model_name',required=True, help='Trained model for dreaming')
 parser.add_argument('-o',type=str,default = "out", dest='output_path',help='dream output location')
 
 
@@ -42,7 +42,7 @@ def save_images(tensor,labels,output_path,prev_serial_num,random_seed):
     words = label_to_word(labels)
     for j in range(tensor.shape[0]):
         img = tensor[j]
-        file_name = str(prev_serial_num + j) + "_" + words[j] + "_" + str(random_seed) + ".png"
+        file_name = str(prev_serial_num + j) + "_" + words[j] + "_" + str(random_seed) + ".jpg"
         torchvision.utils.save_image(img,os.path.join(output_path,file_name))
 
 
