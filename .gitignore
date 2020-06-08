@@ -23,3 +23,7 @@ dataset/
 sample_dreams*/
 
 out*/
+
+code/make_dream_dataset_new/train
+
+code/make_dream_dataset_new/test
