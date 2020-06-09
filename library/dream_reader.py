@@ -33,7 +33,7 @@ class DreamReader():
     a dream reader object should read a batch of images and output
     the words in those images
     '''
-    def __init__(self,lex_list,phoc_net=None,phoc_unigram_levels=(1, 2, 4, 8)):
+    def __init__(self,lex_list,phoc_net=None,phoc_unigram_levels=(2, 4, 6, 8)):
         self.voc = lex_list
         self.phoc_net = phoc_net
         self.phoc_unigram_levels = phoc_unigram_levels
