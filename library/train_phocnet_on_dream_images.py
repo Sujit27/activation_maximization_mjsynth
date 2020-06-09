@@ -24,7 +24,7 @@ def evaluate_cnn(dream_reader,output,words):
     
 def train_phocNet_on_dream_dataset(training_data_path,test_data_path,phoc_unigram_levels='1,2,4,8',
                                    num_epochs=100,lr=0.0001,batch_size=64,weight_decay=0.000,
-                                   lex_txt_file = "../lexicon.txt",device=torch.device('gpu')):
+                                   lex_txt_file = "../lexicon.txt",device=torch.device('cuda')):
     
     train_data_set = PhocDataset(training_data_path)
     train_loader = DataLoader(train_data_set,batch_size=batch_size,shuffle=True,num_workers=0)

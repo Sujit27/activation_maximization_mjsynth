@@ -9,7 +9,7 @@ from find_subset_indices_labels import *
 ## creates subset of the mjsynth dataset according to the word length provided and saves the output in a directory raw2 at the root directory
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-parser.add_argument('--data_root', '-r',action='store',type=str, default='/var/tmp/on63ilaw/mjsynth',help='Location where mjsynth dataset will be stored')
+parser.add_argument('--data_root', '-r',action='store',type=str, default='/var/tmp/on63ilaw/mjsynth',help='Location where mjsynth dataset is present. The new subset dataset will also be created in a new directory raw2 at this location')
 parser.add_argument('--word_len', '-wl',action='store',type=int, default=8,help='Length of word for making a subset of the original Mjsynth dataset present at the data root location')
 
 args = parser.parse_args()
