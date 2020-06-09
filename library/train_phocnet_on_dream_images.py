@@ -22,7 +22,7 @@ def evaluate_cnn(dream_reader,output,words):
 
     return acc_score
     
-def train_phocNet_on_dream_dataset(training_data_path,test_data_path,phoc_unigram_levels='1,2,4,8',
+def train_phocNet_on_dream_dataset(training_data_path,test_data_path,pooling_levels=[2,4,6,8],
                                    num_epochs=100,lr=0.0001,batch_size=64,weight_decay=0.000,
                                    lex_txt_file = "../lexicon.txt",device=torch.device('gpu')):
     
@@ -37,7 +37,7 @@ def train_phocNet_on_dream_dataset(training_data_path,test_data_path,phoc_unigra
     lex_list = [word[:-1] for word in lex_list] 
     dream_reader = DreamReader(lex_list)
     
-    cnn = PHOCNet(n_out=train_data_set[0][1].shape[0],input_channels=1,gpp_type='spp',pooling_levels=4)
+    cnn = PHOCNet(n_out=train_data_set[0][1].shape[0],input_channels=1,gpp_type='tpp',pooling_levels=pooling_levels)
     cnn.init_weights()
     criterion = nn.BCEWithLogitsLoss(size_average=True)
     

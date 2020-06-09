@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from math import ceil
-from .pyramid_pooling import *
+from pyramid_pooling import *
 
 
 class PHOCNet(nn.Module):
@@ -10,7 +10,7 @@ class PHOCNet(nn.Module):
     Network class for generating PHOCNet and TPP-PHOCNet architectures
     '''
 
-    def __init__(self, n_out, input_channels=1, gpp_type='spp', pooling_levels=3, pool_type='max_pool'):
+    def __init__(self, n_out, input_channels=1, gpp_type='tpp', pooling_levels=[2,4,6,8], pool_type='max_pool'):
         super(PHOCNet, self).__init__()
         # some sanity checks
         if gpp_type not in ['spp', 'tpp', 'gpp']:

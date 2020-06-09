@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -5,7 +6,7 @@ import torch.nn.functional as F
 
 class GPP(nn.Module):
 
-    def __init__(self, gpp_type='tpp', levels=3, pool_type='max_pool'):
+    def __init__(self, gpp_type='tpp', levels=4, pool_type='max_pool'):
         super(GPP, self).__init__()
 
         if gpp_type not in ['spp', 'tpp', 'gpp']:
@@ -15,9 +16,10 @@ class GPP(nn.Module):
             raise ValueError('Unknown pool_type. Must be either \'max_pool\', \'avg_pool\'')
 
         if gpp_type == 'spp':
-            self.pooling_output_size = sum([4 ** level for level in range(levels)]) * 512
+            self.pooling_output_size = sum([level for level in levels]) * 512
         elif gpp_type == 'tpp':
-            self.pooling_output_size = (2 ** levels - 1) * 512
+            #self.pooling_output_size = (2 ** levels - 1) * 512
+            self.pooling_output_size = (np.sum(levels) * 512)
         if gpp_type == 'gpp':
             self.pooling_output_size = sum([h * w for h in levels[0] for w in levels[1]]) * 512
 
@@ -47,13 +49,13 @@ class GPP(nn.Module):
 
     def _spatial_pyramid_pooling(self, input_x, levels):
     
-        output_sizes = [(int( 2 **level), int( 2 **level)) for level in range(levels)]
+        output_sizes = [(level, level) for level in levels]
     
         return self._pyramid_pooling(input_x, output_sizes)
     
     def _temporal_pyramid_pooling(self, input_x, levels):
     
-        output_sizes = [(1, int( 2 **level)) for level in range(levels)]
+        output_sizes = [(1, level) for level in levels]
     
         return self._pyramid_pooling(input_x, output_sizes)
 
