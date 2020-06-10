@@ -11,7 +11,8 @@ import copy
 from phoc_network.phoc_dataset import *
 from phoc_network import cosine_loss
 from phoc_network.phoc_net import *
-from dream_reader import *
+from phoc_network.predict_word_from_embd import *
+#from dream_reader import *
 
 
 def evaluate_cnn(dream_reader,output,words):
@@ -22,9 +23,9 @@ def evaluate_cnn(dream_reader,output,words):
 
     return acc_score
     
-def train_phocNet_on_dream_dataset(pooling_levels,training_data_path,test_data_path=None,
+def train_phocNet_on_dream_dataset(pooling_levels,word_length,training_data_path,test_data_path=None,
                                    num_epochs=100,lr=0.0001,batch_size=64,weight_decay=0.000,
-                                   lex_txt_file = "../lexicon.txt",device=torch.device('cuda')):
+                                   device=torch.device('cuda')):
     
     train_data_set = PhocDataset(training_data_path,pooling_levels)
     train_loader = DataLoader(train_data_set,batch_size=batch_size,shuffle=True,num_workers=0)
@@ -33,10 +34,10 @@ def train_phocNet_on_dream_dataset(pooling_levels,training_data_path,test_data_p
         test_data_set = PhocDataset(test_data_path,pooling_levels)
         test_loader = DataLoader(test_data_set,batch_size=batch_size,shuffle=True,num_workers=0)
     
-    with open(lex_txt_file) as f:
-        lex_list = f.readlines()
-    lex_list = [word[:-1] for word in lex_list] 
-    dream_reader = DreamReader(lex_list,pooling_levels)
+#    with open(lex_txt_file) as f:
+#        lex_list = f.readlines()
+#    lex_list = [word[:-1] for word in lex_list] 
+    #dream_reader = DreamReader(lex_list,pooling_levels)
     
     cnn = PHOCNet(train_data_set[0][1].shape[0],pooling_levels,input_channels=1,gpp_type='tpp')
     cnn.init_weights()
@@ -49,8 +50,8 @@ def train_phocNet_on_dream_dataset(pooling_levels,training_data_path,test_data_p
     
     for epoch in range(num_epochs):
         cnn.train()
-        training_acc_list = []
-        test_acc_list = []
+        training_distance_list = []
+        test_distance_list = []
         training_loss_list = []
         test_loss_list = []
         for i,data in enumerate(train_loader,0):
@@ -66,11 +67,13 @@ def train_phocNet_on_dream_dataset(pooling_levels,training_data_path,test_data_p
             loss.backward()
             optimizer.step()
 
-            training_acc = evaluate_cnn(dream_reader,outputs,words)
+            #training_distance = evaluate_cnn(dream_reader,outputs,words)
+            word_distance_array = find_string_distances(outputs.cpu().detach().numpy(),words,pooling_levels,word_length)
+            edit_distance_error_avg = float(np.sum(word_distance_array)) / (batch_size*word_length)
             training_loss_list.append(loss.item())
-            training_acc_list.append(training_acc)
+            training_distance_list.append(edit_distance_error_avg)
 
-        print("Epoch : {}, Training loss: {}, Training accuracy: {}".format(epoch,sum(training_loss_list)/len(training_loss_list),sum(training_acc_list)/len(training_acc_list)))
+        print("Epoch : {}, Training loss: {}, Training avg string distance : {}".format(epoch,sum(training_loss_list)/len(training_loss_list),sum(training_distance_list)/len(training_distance_list)))
         #print("End of training epoch :",epoch)
         
         if test_data_path is not None:
@@ -84,9 +87,11 @@ def train_phocNet_on_dream_dataset(pooling_levels,training_data_path,test_data_p
 
                     outputs = cnn(imgs)
                     test_loss = criterion(outputs, embeddings) / batch_size
-                    test_acc = evaluate_cnn(dream_reader,outputs,words)
+                    #test_distance = evaluate_cnn(dream_reader,outputs,words)
+                    word_distance_array = find_string_distances(outputs.cpu().detach().numpy(),words,pooling_levels,word_length)
+                    edit_distance_error_avg = float(np.sum(word_distance_array)) / (batch_size*word_length)
                     test_loss_list.append(test_loss.item())
-                    test_acc_list.append(test_acc)
+                    test_distance_list.append(edit_distance_error_avg)
 
-                print("Epoch : {}, Validation loss: {}, Validation accuracy: {}".format(epoch,sum(test_loss_list)/len(test_loss_list),sum(test_acc_list)/len(test_acc_list)))
-
+                print("Epoch : {}, Validation loss: {}, Test avg string distance: {}".format(epoch,sum(test_loss_list)/len(test_loss_list),sum(test_distance_list)/len(test_distance_list)))
+        
