@@ -22,22 +22,23 @@ def evaluate_cnn(dream_reader,output,words):
 
     return acc_score
     
-def train_phocNet_on_dream_dataset(training_data_path,test_data_path,pooling_levels=[2,4,6,8],
+def train_phocNet_on_dream_dataset(pooling_levels,training_data_path,test_data_path=None,
                                    num_epochs=100,lr=0.0001,batch_size=64,weight_decay=0.000,
                                    lex_txt_file = "../lexicon.txt",device=torch.device('cuda')):
     
-    train_data_set = PhocDataset(training_data_path)
+    train_data_set = PhocDataset(training_data_path,pooling_levels)
     train_loader = DataLoader(train_data_set,batch_size=batch_size,shuffle=True,num_workers=0)
-    
-    test_data_set = PhocDataset(test_data_path)
-    test_loader = DataLoader(test_data_set,batch_size=batch_size,shuffle=True,num_workers=0)
+   
+    if test_data_path is not None:
+        test_data_set = PhocDataset(test_data_path,pooling_levels)
+        test_loader = DataLoader(test_data_set,batch_size=batch_size,shuffle=True,num_workers=0)
     
     with open(lex_txt_file) as f:
         lex_list = f.readlines()
     lex_list = [word[:-1] for word in lex_list] 
-    dream_reader = DreamReader(lex_list)
+    dream_reader = DreamReader(lex_list,pooling_levels)
     
-    cnn = PHOCNet(n_out=train_data_set[0][1].shape[0],input_channels=1,gpp_type='tpp',pooling_levels=pooling_levels)
+    cnn = PHOCNet(train_data_set[0][1].shape[0],pooling_levels,input_channels=1,gpp_type='tpp')
     cnn.init_weights()
     criterion = nn.BCEWithLogitsLoss(size_average=True)
     
@@ -72,19 +73,20 @@ def train_phocNet_on_dream_dataset(training_data_path,test_data_path,pooling_lev
         print("Epoch : {}, Training loss: {}, Training accuracy: {}".format(epoch,sum(training_loss_list)/len(training_loss_list),sum(training_acc_list)/len(training_acc_list)))
         #print("End of training epoch :",epoch)
         
-        if epoch % 10 == 9:
-            cnn.eval()
-            for i,data in enumerate(test_loader,0):
-                imgs,embeddings,_,words = data
+        if test_data_path is not None:
+            if epoch % 10 == 9:
+                cnn.eval()
+                for i,data in enumerate(test_loader,0):
+                    imgs,embeddings,_,words = data
 
-                imgs = imgs.to(device)
-                embeddings = embeddings.to(device)
+                    imgs = imgs.to(device)
+                    embeddings = embeddings.to(device)
 
-                outputs = cnn(imgs)
-                test_loss = criterion(outputs, embeddings) / batch_size
-                test_acc = evaluate_cnn(dream_reader,outputs,words)
-                test_loss_list.append(test_loss.item())
-                test_acc_list.append(test_acc)
+                    outputs = cnn(imgs)
+                    test_loss = criterion(outputs, embeddings) / batch_size
+                    test_acc = evaluate_cnn(dream_reader,outputs,words)
+                    test_loss_list.append(test_loss.item())
+                    test_acc_list.append(test_acc)
 
-            print("Epoch : {}, Validation loss: {}, Validation accuracy: {}".format(epoch,sum(test_loss_list)/len(test_loss_list),sum(test_acc_list)/len(test_acc_list)))
+                print("Epoch : {}, Validation loss: {}, Validation accuracy: {}".format(epoch,sum(test_loss_list)/len(test_loss_list),sum(test_acc_list)/len(test_acc_list)))
 

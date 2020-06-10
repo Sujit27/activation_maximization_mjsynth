@@ -6,7 +6,7 @@ import torch.nn.functional as F
 
 class GPP(nn.Module):
 
-    def __init__(self, gpp_type='tpp', levels=4, pool_type='max_pool'):
+    def __init__(self, levels,gpp_type='tpp', pool_type='max_pool'):
         super(GPP, self).__init__()
 
         if gpp_type not in ['spp', 'tpp', 'gpp']:

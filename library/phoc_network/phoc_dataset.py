@@ -22,7 +22,7 @@ class PhocDataset(Dataset):
     Phoc dataset class for the mjsynth dataset
     '''
 
-    def __init__(self, root_dir,phoc_unigram_levels=(2, 4, 6, 8)):
+    def __init__(self, root_dir,phoc_unigram_levels):
         '''root_dir : location of dataset
         '''
         # class members
