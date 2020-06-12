@@ -1,0 +1,23 @@
+Epoch : 0, Training loss: 0.002009224948576755, Training avg string distance : 2.765625
+Epoch : 1, Training loss: 0.0009597966175836822, Training avg string distance : 2.715451388888889
+Epoch : 2, Training loss: 0.0008925833254276465, Training avg string distance : 2.6993055555555556
+Epoch : 3, Training loss: 0.0008409700957903017, Training avg string distance : 2.6362847222222223
+Epoch : 4, Training loss: 0.00047282886241898974, Training avg string distance : 1.3142361111111112
+Epoch : 5, Training loss: 6.220345413668029e-05, Training avg string distance : 0.051909722222222225
+Epoch : 6, Training loss: 1.8058538838279977e-05, Training avg string distance : 0.005729166666666666
+Epoch : 7, Training loss: 1.1245621893370602e-05, Training avg string distance : 0.003298611111111111
+Epoch : 8, Training loss: 7.945359233316494e-06, Training avg string distance : 0.0012152777777777778
+Epoch : 9, Training loss: 6.086005349617255e-06, Training avg string distance : 0.00034722222222222224
+Epoch : 9, Validation loss: 0.0015889125344797205, Test avg string distance: 1.5733173076923077
+Epoch : 10, Training loss: 5.004817488598848e-06, Training avg string distance : 0.0010416666666666667
+Epoch : 11, Training loss: 4.019145372543184e-06, Training avg string distance : 0.0005208333333333333
+Epoch : 12, Training loss: 3.4489888144485626e-06, Training avg string distance : 0.0
+Epoch : 13, Training loss: 3.0456189796900113e-06, Training avg string distance : 0.00017361111111111112
+Epoch : 14, Training loss: 2.439407469662708e-06, Training avg string distance : 0.00017361111111111112
+Epoch : 15, Training loss: 2.5213257951387884e-06, Training avg string distance : 0.0
+Epoch : 16, Training loss: 2.3561808449004375e-06, Training avg string distance : 0.00017361111111111112
+Epoch : 17, Training loss: 2.170622434821073e-06, Training avg string distance : 0.0
+Epoch : 18, Training loss: 1.8543167903494071e-06, Training avg string distance : 0.0
+Epoch : 19, Training loss: 1.8858630175107768e-06, Training avg string distance : 0.00017361111111111112
+Epoch : 19, Validation loss: 0.0018012823077300803, Test avg string distance: 1.5849358974358974
+Time taken for training and testing of phocNet on current set of dream images is : 480.9829044342041

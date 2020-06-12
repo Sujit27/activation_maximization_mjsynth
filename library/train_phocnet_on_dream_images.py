@@ -69,7 +69,7 @@ def train_phocNet_on_dream_dataset(pooling_levels,word_length,training_data_path
 
             #training_distance = evaluate_cnn(dream_reader,outputs,words)
             word_distance_array = find_string_distances(outputs.cpu().detach().numpy(),words,pooling_levels,word_length)
-            edit_distance_error_avg = float(np.sum(word_distance_array)) / (batch_size*word_length)
+            edit_distance_error_avg = float(np.sum(word_distance_array)) / (batch_size)
             training_loss_list.append(loss.item())
             training_distance_list.append(edit_distance_error_avg)
 
@@ -89,7 +89,7 @@ def train_phocNet_on_dream_dataset(pooling_levels,word_length,training_data_path
                     test_loss = criterion(outputs, embeddings) / batch_size
                     #test_distance = evaluate_cnn(dream_reader,outputs,words)
                     word_distance_array = find_string_distances(outputs.cpu().detach().numpy(),words,pooling_levels,word_length)
-                    edit_distance_error_avg = float(np.sum(word_distance_array)) / (batch_size*word_length)
+                    edit_distance_error_avg = float(np.sum(word_distance_array)) / (batch_size)
                     test_loss_list.append(test_loss.item())
                     test_distance_list.append(edit_distance_error_avg)
 
