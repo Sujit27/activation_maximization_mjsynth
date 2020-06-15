@@ -1,0 +1,111 @@
+Epoch : 0, Training loss: 0.0069558341056108475, Training avg string distance : 4.4765625
+Epoch : 1, Training loss: 0.0033408309876297912, Training avg string distance : 4.32421875
+Epoch : 2, Training loss: 0.0027436446980573237, Training avg string distance : 4.21484375
+Epoch : 3, Training loss: 0.002551902085542679, Training avg string distance : 4.201822916666667
+Epoch : 4, Training loss: 0.0024704420939087868, Training avg string distance : 4.14453125
+Epoch : 5, Training loss: 0.0024030735755028823, Training avg string distance : 4.114583333333333
+Epoch : 6, Training loss: 0.0023625786610258124, Training avg string distance : 4.067708333333333
+Epoch : 7, Training loss: 0.0023433463841987154, Training avg string distance : 4.100260416666667
+Epoch : 8, Training loss: 0.0023024726348618665, Training avg string distance : 4.05078125
+Epoch : 9, Training loss: 0.002288980584125966, Training avg string distance : 4.076822916666667
+Epoch : 9, Validation loss: 0.0020418596919625997, Test avg string distance: 3.784375
+Epoch : 10, Training loss: 0.0022655833551349738, Training avg string distance : 4.037760416666667
+Epoch : 11, Training loss: 0.0022416707943193614, Training avg string distance : 4.024739583333333
+Epoch : 12, Training loss: 0.0022375263506546617, Training avg string distance : 4.02734375
+Epoch : 13, Training loss: 0.0022231327214588723, Training avg string distance : 4.018229166666667
+Epoch : 14, Training loss: 0.0022108442693327865, Training avg string distance : 4.00390625
+Epoch : 15, Training loss: 0.002189240612400075, Training avg string distance : 4.037760416666667
+Epoch : 16, Training loss: 0.002190672676078975, Training avg string distance : 4.033854166666667
+Epoch : 17, Training loss: 0.0021766110245759287, Training avg string distance : 3.9934895833333335
+Epoch : 18, Training loss: 0.002171951656540235, Training avg string distance : 4.0234375
+Epoch : 19, Training loss: 0.002162652808086326, Training avg string distance : 3.9947916666666665
+Epoch : 19, Validation loss: 0.0020150443073362113, Test avg string distance: 3.834375
+Epoch : 20, Training loss: 0.0021575093463373682, Training avg string distance : 4.01171875
+Epoch : 21, Training loss: 0.002145004594543328, Training avg string distance : 3.9921875
+Epoch : 22, Training loss: 0.0021367958591630063, Training avg string distance : 3.953125
+Epoch : 23, Training loss: 0.002126698906067759, Training avg string distance : 4.005208333333333
+Epoch : 24, Training loss: 0.0021207743557170033, Training avg string distance : 3.9453125
+Epoch : 25, Training loss: 0.00209795309153075, Training avg string distance : 3.8645833333333335
+Epoch : 26, Training loss: 0.0020913833868689835, Training avg string distance : 3.9322916666666665
+Epoch : 27, Training loss: 0.0020640951309663555, Training avg string distance : 3.8307291666666665
+Epoch : 28, Training loss: 0.002040394911697755, Training avg string distance : 3.8059895833333335
+Epoch : 29, Training loss: 0.0020071531374317906, Training avg string distance : 3.6901041666666665
+Epoch : 29, Validation loss: 0.0018854263238608838, Test avg string distance: 3.715625
+Epoch : 30, Training loss: 0.002001063995218525, Training avg string distance : 3.7109375
+Epoch : 31, Training loss: 0.001964691279378409, Training avg string distance : 3.66796875
+Epoch : 32, Training loss: 0.0019313481461722404, Training avg string distance : 3.609375
+Epoch : 33, Training loss: 0.0018943132017739117, Training avg string distance : 3.4895833333333335
+Epoch : 34, Training loss: 0.001876141846878454, Training avg string distance : 3.48046875
+Epoch : 35, Training loss: 0.0018384488842760522, Training avg string distance : 3.359375
+Epoch : 36, Training loss: 0.0017753391778872658, Training avg string distance : 3.2044270833333335
+Epoch : 37, Training loss: 0.0017072901925227295, Training avg string distance : 3.0638020833333335
+Epoch : 38, Training loss: 0.0016517006636907656, Training avg string distance : 2.9453125
+Epoch : 39, Training loss: 0.0015798996998152386, Training avg string distance : 2.7278645833333335
+Epoch : 39, Validation loss: 0.0016023065894842149, Test avg string distance: 2.7375
+Epoch : 40, Training loss: 0.001496207172749564, Training avg string distance : 2.5
+Epoch : 41, Training loss: 0.0014122628587453316, Training avg string distance : 2.28125
+Epoch : 42, Training loss: 0.0013168923809037854, Training avg string distance : 2.11328125
+Epoch : 43, Training loss: 0.0012207715966117878, Training avg string distance : 1.86328125
+Epoch : 44, Training loss: 0.0011507291055750102, Training avg string distance : 1.7604166666666667
+Epoch : 45, Training loss: 0.0010521772055653855, Training avg string distance : 1.5559895833333333
+Epoch : 46, Training loss: 0.00094527643523179, Training avg string distance : 1.3671875
+Epoch : 47, Training loss: 0.0008812964224489406, Training avg string distance : 1.2018229166666667
+Epoch : 48, Training loss: 0.0007804301858413965, Training avg string distance : 0.9947916666666666
+Epoch : 49, Training loss: 0.0007195381234244754, Training avg string distance : 0.85546875
+Epoch : 49, Validation loss: 0.001249674172140658, Test avg string distance: 1.93125
+Epoch : 50, Training loss: 0.0006606648385059088, Training avg string distance : 0.76171875
+Epoch : 51, Training loss: 0.0005869724942992131, Training avg string distance : 0.6354166666666666
+Epoch : 52, Training loss: 0.0005310033302521333, Training avg string distance : 0.5833333333333334
+Epoch : 53, Training loss: 0.00046182868148510653, Training avg string distance : 0.4765625
+Epoch : 54, Training loss: 0.0004286520537182999, Training avg string distance : 0.4010416666666667
+Epoch : 55, Training loss: 0.0003973908751504496, Training avg string distance : 0.359375
+Epoch : 56, Training loss: 0.0003544719875208102, Training avg string distance : 0.3190104166666667
+Epoch : 57, Training loss: 0.00032184846107459936, Training avg string distance : 0.22916666666666666
+Epoch : 58, Training loss: 0.00027813747510663234, Training avg string distance : 0.20182291666666666
+Epoch : 59, Training loss: 0.0002634700467751827, Training avg string distance : 0.20442708333333334
+Epoch : 59, Validation loss: 0.0012787482235580682, Test avg string distance: 1.571875
+Epoch : 60, Training loss: 0.00025532479291238513, Training avg string distance : 0.16276041666666666
+Epoch : 61, Training loss: 0.00022995266408543102, Training avg string distance : 0.13411458333333334
+Epoch : 62, Training loss: 0.00022444104009385532, Training avg string distance : 0.13671875
+Epoch : 63, Training loss: 0.0002117927542713005, Training avg string distance : 0.12369791666666667
+Epoch : 64, Training loss: 0.00018780208847601898, Training avg string distance : 0.10026041666666667
+Epoch : 65, Training loss: 0.00017327956447843462, Training avg string distance : 0.08984375
+Epoch : 66, Training loss: 0.0001677058620164947, Training avg string distance : 0.061197916666666664
+Epoch : 67, Training loss: 0.00016057356697274372, Training avg string distance : 0.08854166666666667
+Epoch : 68, Training loss: 0.0001486384838547868, Training avg string distance : 0.052083333333333336
+Epoch : 69, Training loss: 0.00014200297907033624, Training avg string distance : 0.049479166666666664
+Epoch : 69, Validation loss: 0.001306247734464705, Test avg string distance: 1.45
+Epoch : 70, Training loss: 0.00013531451683472065, Training avg string distance : 0.053385416666666664
+Epoch : 71, Training loss: 0.00012320589000106943, Training avg string distance : 0.041666666666666664
+Epoch : 72, Training loss: 0.00012646146569750272, Training avg string distance : 0.044270833333333336
+Epoch : 73, Training loss: 0.00011376354207944435, Training avg string distance : 0.033854166666666664
+Epoch : 74, Training loss: 0.00010536207325155071, Training avg string distance : 0.03125
+Epoch : 75, Training loss: 9.944660572121695e-05, Training avg string distance : 0.03515625
+Epoch : 76, Training loss: 9.796056959506434e-05, Training avg string distance : 0.028645833333333332
+Epoch : 77, Training loss: 9.328660295674733e-05, Training avg string distance : 0.03515625
+Epoch : 78, Training loss: 9.21492913524465e-05, Training avg string distance : 0.032552083333333336
+Epoch : 79, Training loss: 8.909513174633805e-05, Training avg string distance : 0.032552083333333336
+Epoch : 79, Validation loss: 0.0013747841585427523, Test avg string distance: 1.425
+Epoch : 80, Training loss: 8.286203410534654e-05, Training avg string distance : 0.018229166666666668
+Epoch : 81, Training loss: 8.147794081499644e-05, Training avg string distance : 0.0234375
+Epoch : 82, Training loss: 8.187457812406744e-05, Training avg string distance : 0.01953125
+Epoch : 83, Training loss: 7.925567206257256e-05, Training avg string distance : 0.028645833333333332
+Epoch : 84, Training loss: 7.54639786464395e-05, Training avg string distance : 0.0234375
+Epoch : 85, Training loss: 7.113933740280724e-05, Training avg string distance : 0.016927083333333332
+Epoch : 86, Training loss: 7.02122464038742e-05, Training avg string distance : 0.020833333333333332
+Epoch : 87, Training loss: 6.664981871532898e-05, Training avg string distance : 0.010416666666666666
+Epoch : 88, Training loss: 6.834899977548048e-05, Training avg string distance : 0.01953125
+Epoch : 89, Training loss: 6.682598662640278e-05, Training avg string distance : 0.02734375
+Epoch : 89, Validation loss: 0.0013258458347991109, Test avg string distance: 1.334375
+Epoch : 90, Training loss: 6.250240464093319e-05, Training avg string distance : 0.014322916666666666
+Epoch : 91, Training loss: 6.382745171625477e-05, Training avg string distance : 0.010416666666666666
+Epoch : 92, Training loss: 5.9062633530023355e-05, Training avg string distance : 0.01171875
+Epoch : 93, Training loss: 6.006193446713345e-05, Training avg string distance : 0.020833333333333332
+Epoch : 94, Training loss: 5.724792724019304e-05, Training avg string distance : 0.006510416666666667
+Epoch : 95, Training loss: 5.902132822181253e-05, Training avg string distance : 0.01171875
+Epoch : 96, Training loss: 5.591114161992058e-05, Training avg string distance : 0.010416666666666666
+Epoch : 97, Training loss: 5.517561233621867e-05, Training avg string distance : 0.006510416666666667
+Epoch : 98, Training loss: 5.348261856852332e-05, Training avg string distance : 0.014322916666666666
+Epoch : 99, Training loss: 4.864508476506065e-05, Training avg string distance : 0.00390625
+Epoch : 99, Validation loss: 0.0014429466798901557, Test avg string distance: 1.3
+Time taken for training and testing of phocNet on current set of dream images is : 313.9583423137665

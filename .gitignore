@@ -16,7 +16,9 @@ models*/
 
 raw_files/
 
-scrap_dreams/
+scrap*/
+
+scrap*
 
 dataset/
 
@@ -24,6 +26,6 @@ sample_dreams*/
 
 out*/
 
-code/make_dream_dataset_new/train
+code/create_dream_dataset/train/
 
-code/make_dream_dataset_new/test
+code/create_dream_dataset/test/

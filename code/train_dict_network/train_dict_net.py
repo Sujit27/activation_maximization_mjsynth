@@ -1,9 +1,9 @@
 import sys
-sys.path.append("../../")
+sys.path.append("../../library")
 import dagtasets as dg
-from library.dict_network.dict_net import *
-from library.helper_functions import *
-from library.label_dicts import create_label_dicts
+from dict_network.dict_net import *
+from helper_functions import *
+from create_label_dicts import *
 from torch.utils.data  import SubsetRandomSampler
 from torch import optim
 import csv
@@ -15,7 +15,7 @@ import argparse
 
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-parser.add_argument('-n',type=int,default = None, dest='num_labels',help='Store number of labels')
+parser.add_argument('-n',type=int,default = None, dest='num_labels',required=True,help='Store number of labels')
 parser.add_argument('-m',type=str,default = None, dest='existing_model_location',help='Full path of existing model')
 parser.add_argument('--grow',default = False, action = 'store_true',help='Bool whether to grow the existing model')
 parser.add_argument('--dicts',default = False, action = 'store_true',help='Bool whether to create fresh label indices dictionary at the data root. If training on the same data as previous, it saves time to set this False')

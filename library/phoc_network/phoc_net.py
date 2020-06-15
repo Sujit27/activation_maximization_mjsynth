@@ -10,7 +10,7 @@ class PHOCNet(nn.Module):
     Network class for generating PHOCNet and TPP-PHOCNet architectures
     '''
 
-    def __init__(self, n_out, input_channels=1, gpp_type='tpp', pooling_levels=[2,4,6,8], pool_type='max_pool'):
+    def __init__(self, n_out,pooling_levels, input_channels=1, gpp_type='tpp', pool_type='max_pool'):
         super(PHOCNet, self).__init__()
         # some sanity checks
         if gpp_type not in ['spp', 'tpp', 'gpp']:
@@ -30,7 +30,7 @@ class PHOCNet(nn.Module):
         self.conv4_2 = nn.Conv2d(in_channels=512, out_channels=512, kernel_size=3, stride=1, padding=1)
         self.conv4_3 = nn.Conv2d(in_channels=512, out_channels=512, kernel_size=3, stride=1, padding=1)
         # create the spatial pooling layer
-        self.pooling_layer_fn = GPP(gpp_type=gpp_type, levels=pooling_levels, pool_type=pool_type)
+        self.pooling_layer_fn = GPP(pooling_levels,gpp_type=gpp_type, pool_type=pool_type)
         pooling_output_size = self.pooling_layer_fn.pooling_output_size
         self.fc5 = nn.Linear(pooling_output_size, 4096)
         self.fc6 = nn.Linear(4096, 4096)
