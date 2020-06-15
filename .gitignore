@@ -26,6 +26,6 @@ sample_dreams*/
 
 out*/
 
-code/make_dream_dataset/train/
+code/create_dream_dataset/train/
 
-code/make_dream_dataset/test/
+code/create_dream_dataset/test/
