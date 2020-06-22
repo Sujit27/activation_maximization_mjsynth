@@ -3,10 +3,12 @@ import torch
 import torch.utils.data
 import numpy as np
 import os
+import shutil
 import re
 import dagtasets as dg
 import sklearn.metrics as skm
 import csv
+import json
 import ast
 
 
@@ -160,4 +162,32 @@ def literal_to_dict(lit_dict):
 
     return dictionary
 
-        
+def save_label_dict(dictnet_dataset,output_path):
+    '''
+    saves dictionary of label number and class(word)
+    for a dictnet_dataset type object
+    '''
+#    num_classes = dictnet_dataset.num_labels
+#    labels = [i for i in range(num_classes)]
+#    words = list(dictnet_dataset.label_encoder.inverse_transform(labels))
+#
+#    label_dict = dict(zip(labels,words))
+    
+    with open(os.path.join(output_path,'label_dict.json'),'w') as f:
+        json.dump(dictnet_dataset.label_dict,f)
+
+def save_ckp(state, is_best, checkpoint_path, best_model_path):
+    """
+    state: checkpoint we want to save
+    is_best: is this the best checkpoint; min validation loss
+    checkpoint_path: path to save checkpoint
+    best_model_path: path to save best model
+    """
+    f_path = checkpoint_path
+    # save checkpoint data to the path given, checkpoint_path
+    torch.save(state, f_path)
+    # if it is a best model, min validation loss
+    if is_best:
+        best_fpath = best_model_path
+        # copy that checkpoint file to best path given, best_model_path
+        shutil.copyfile(f_path, best_fpath)
