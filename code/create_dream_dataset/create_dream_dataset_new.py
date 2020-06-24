@@ -43,48 +43,7 @@ def create_annotation_txt(files_path):
         for item in file_list:
             f.write("%s\n" % os.path.basename(item))
             
-def split_dream_dataset(data_path,test_ratio):
-    '''Given location which contains dream images in the format #_word_#.jpg and a ratio, the function
-    finds the number of unique word labels and splits them into training labels and test labels. It then
-    splits all the dream image file names present in the directory into training_files and test_files, creates 
-    train and test directories and copies the corresponding images to each directory
-    '''
-    file_list = glob.glob(os.path.join(data_path,"*.jpg"))
-    labels = [os.path.basename(file).split("_")[1] for file in file_list]
-    unique_labels = list(set(labels))
-    label_train ,label_test = train_test_split(unique_labels,test_size=test_ratio)
-    
-    train_file_list = []
-    test_file_list = []
-    
-    for file in file_list:
-        for label in label_train:
-            if label in file:
-                train_file_list.append(file)
-                
-    for file in file_list:
-        for label in label_test:
-            if label in file:
-                test_file_list.append(file)
-    
-    dir_train = 'train'
-    if os.path.exists(dir_train):
-        shutil.rmtree(dir_train)
-    os.makedirs(dir_train)
-    
-    dir_test = 'test'
-    if os.path.exists(dir_test):
-        shutil.rmtree(dir_test)
-    os.makedirs(dir_test)
-    
-    for full_file_name in train_file_list:
-        shutil.copy(full_file_name,dir_train)
-        
-    for full_file_name in test_file_list:
-        shutil.copy(full_file_name,dir_test)
-        
-    return label_train ,label_test
-    
+   
 def make_dataset_ready_for_PhocNet(data_path):
     '''creates annotation txt file from the name of all image files in the data path provided and 
     creates a new sub directory 'raw' and moves data into it (this is required for phocNet training)
@@ -171,7 +130,6 @@ def main():
         end = time.time()
     print("Time taken for dreaming and saving images : {} seconds".format((end-start)))
 #
-#    label_train ,label_test = split_dream_dataset(output_path,test_ratio)
     make_dataset_ready_for_PhocNet(output_path_train)
     make_dataset_ready_for_PhocNet(output_path_test)
     

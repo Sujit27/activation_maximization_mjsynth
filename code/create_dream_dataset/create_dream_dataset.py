@@ -134,13 +134,6 @@ def main():
     label_train ,label_test = split_dream_dataset(output_path,test_ratio)
     make_dataset_ready_for_PhocNet('train')
     make_dataset_ready_for_PhocNet('test')
-    # create_annotation_txt(output_path)
-    # raw_path = os.path.join(output_path,'raw')
-    # Path(raw_path).mkdir(parents=True,exist_ok=True)
-    # files = os.listdir(output_path)
-    # for f in files:
-        # shutil.move(os.path.join(output_path,f),raw_path)
-
     
 if __name__ == "__main__":
     main()
