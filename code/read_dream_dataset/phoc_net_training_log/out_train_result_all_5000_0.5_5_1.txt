@@ -1,0 +1,134 @@
+Epoch : 0, Training loss: 0.0030253252424075304, Training avg string distance : 5.171216114457831
+Epoch : 0, Validation loss: 0.0022793356173982223, Validation avg string distance: 4.786458333333333
+Validation loss decreased (10000000.000000 --> 0.002279). Saving model ...
+Epoch : 1, Training loss: 0.0023811525813898587, Training avg string distance : 5.007247740963855
+Epoch : 1, Validation loss: 0.002271549644259115, Validation avg string distance: 4.778645833333333
+Validation loss decreased (0.002279 --> 0.002272). Saving model ...
+Epoch : 2, Training loss: 0.0023362943033003306, Training avg string distance : 4.97082078313253
+Epoch : 2, Validation loss: 0.0022604520277430614, Validation avg string distance: 4.741666666666666
+Validation loss decreased (0.002272 --> 0.002260). Saving model ...
+Epoch : 3, Training loss: 0.0023144967054544263, Training avg string distance : 4.9430534638554215
+Epoch : 3, Validation loss: 0.002260879760918518, Validation avg string distance: 4.741145833333333
+Epoch : 4, Training loss: 0.0023060416331492275, Training avg string distance : 4.910956325301205
+Epoch : 4, Validation loss: 0.002268198582654198, Validation avg string distance: 4.764583333333333
+Epoch : 5, Training loss: 0.0022831691964809975, Training avg string distance : 4.863893072289157
+Epoch : 5, Validation loss: 0.0021914347540587186, Validation avg string distance: 4.518229166666667
+Validation loss decreased (0.002260 --> 0.002191). Saving model ...
+Epoch : 6, Training loss: 0.0021746322464938446, Training avg string distance : 4.5198606927710845
+Epoch : 6, Validation loss: 0.0020164390831875303, Validation avg string distance: 4.058854166666666
+Validation loss decreased (0.002191 --> 0.002016). Saving model ...
+Epoch : 7, Training loss: 0.001998751689343298, Training avg string distance : 4.041227409638554
+Epoch : 7, Validation loss: 0.0018393972151291868, Validation avg string distance: 3.605208333333333
+Validation loss decreased (0.002016 --> 0.001839). Saving model ...
+Epoch : 8, Training loss: 0.0018341144426243313, Training avg string distance : 3.5940323795180724
+Epoch : 8, Validation loss: 0.0016352396264361839, Validation avg string distance: 2.9401041666666665
+Validation loss decreased (0.001839 --> 0.001635). Saving model ...
+Epoch : 9, Training loss: 0.001583093793428761, Training avg string distance : 2.8781061746987953
+Epoch : 9, Validation loss: 0.0012655159225687385, Validation avg string distance: 1.9484375
+Validation loss decreased (0.001635 --> 0.001266). Saving model ...
+Epoch : 10, Training loss: 0.0012368355051569462, Training avg string distance : 1.9519954819277108
+Epoch : 10, Validation loss: 0.0008747513755224645, Validation avg string distance: 1.1322916666666667
+Validation loss decreased (0.001266 --> 0.000875). Saving model ...
+Epoch : 11, Training loss: 0.0009247513599441308, Training avg string distance : 1.2775790662650603
+Epoch : 11, Validation loss: 0.0006070717936381698, Validation avg string distance: 0.6625
+Validation loss decreased (0.000875 --> 0.000607). Saving model ...
+Epoch : 12, Training loss: 0.0006976240505296064, Training avg string distance : 0.8335843373493976
+Epoch : 12, Validation loss: 0.0004564771254081279, Validation avg string distance: 0.41875
+Validation loss decreased (0.000607 --> 0.000456). Saving model ...
+Epoch : 13, Training loss: 0.0005324249180715464, Training avg string distance : 0.5371799698795181
+Epoch : 13, Validation loss: 0.00033841992165738096, Validation avg string distance: 0.25729166666666664
+Validation loss decreased (0.000456 --> 0.000338). Saving model ...
+Epoch : 14, Training loss: 0.0004087472620282704, Training avg string distance : 0.34073795180722893
+Epoch : 14, Validation loss: 0.0002452455878180141, Validation avg string distance: 0.14791666666666667
+Validation loss decreased (0.000338 --> 0.000245). Saving model ...
+Epoch : 15, Training loss: 0.00032185482216090056, Training avg string distance : 0.22740963855421686
+Epoch : 15, Validation loss: 0.00018579917474805067, Validation avg string distance: 0.11666666666666667
+Validation loss decreased (0.000245 --> 0.000186). Saving model ...
+Epoch : 16, Training loss: 0.0002561021964900274, Training avg string distance : 0.14853162650602408
+Epoch : 16, Validation loss: 0.00014392721641343087, Validation avg string distance: 0.07864583333333333
+Validation loss decreased (0.000186 --> 0.000144). Saving model ...
+Epoch : 17, Training loss: 0.00020815783246218352, Training avg string distance : 0.09732680722891567
+Epoch : 17, Validation loss: 0.00012375311974513654, Validation avg string distance: 0.0671875
+Validation loss decreased (0.000144 --> 0.000124). Saving model ...
+Epoch : 18, Training loss: 0.00017216401360508235, Training avg string distance : 0.06946536144578314
+Epoch : 18, Validation loss: 9.86262210062705e-05, Validation avg string distance: 0.052083333333333336
+Validation loss decreased (0.000124 --> 0.000099). Saving model ...
+Epoch : 19, Training loss: 0.00014430555875808652, Training avg string distance : 0.05176957831325301
+Epoch : 19, Validation loss: 8.550530668192854e-05, Validation avg string distance: 0.04114583333333333
+Validation loss decreased (0.000099 --> 0.000086). Saving model ...
+Epoch : 20, Training loss: 0.0001224954003301247, Training avg string distance : 0.0337914156626506
+Epoch : 20, Validation loss: 7.236797064251732e-05, Validation avg string distance: 0.035416666666666666
+Validation loss decreased (0.000086 --> 0.000072). Saving model ...
+Epoch : 21, Training loss: 0.00010610824638096818, Training avg string distance : 0.028708584337349397
+Epoch : 21, Validation loss: 6.572617251852838e-05, Validation avg string distance: 0.033854166666666664
+Validation loss decreased (0.000072 --> 0.000066). Saving model ...
+Epoch : 22, Training loss: 9.428694816544675e-05, Training avg string distance : 0.0208019578313253
+Epoch : 22, Validation loss: 5.4478985111927615e-05, Validation avg string distance: 0.0265625
+Validation loss decreased (0.000066 --> 0.000054). Saving model ...
+Epoch : 23, Training loss: 8.208817162523635e-05, Training avg string distance : 0.015436746987951807
+Epoch : 23, Validation loss: 4.9675895085480684e-05, Validation avg string distance: 0.021875
+Validation loss decreased (0.000054 --> 0.000050). Saving model ...
+Epoch : 24, Training loss: 7.420245939616747e-05, Training avg string distance : 0.011859939759036145
+Epoch : 24, Validation loss: 5.65122461921419e-05, Validation avg string distance: 0.034375
+Epoch : 25, Training loss: 6.79914754358154e-05, Training avg string distance : 0.012048192771084338
+Epoch : 25, Validation loss: 4.204290059230213e-05, Validation avg string distance: 0.017708333333333333
+Validation loss decreased (0.000050 --> 0.000042). Saving model ...
+Epoch : 26, Training loss: 6.140532228111778e-05, Training avg string distance : 0.008189006024096385
+Epoch : 26, Validation loss: 3.762816631933674e-05, Validation avg string distance: 0.016145833333333335
+Validation loss decreased (0.000042 --> 0.000038). Saving model ...
+Epoch : 27, Training loss: 5.635176022629624e-05, Training avg string distance : 0.007530120481927711
+Epoch : 27, Validation loss: 3.443376196325213e-05, Validation avg string distance: 0.013020833333333334
+Validation loss decreased (0.000038 --> 0.000034). Saving model ...
+Epoch : 28, Training loss: 5.034700129672055e-05, Training avg string distance : 0.005082831325301205
+Epoch : 28, Validation loss: 3.462476021619902e-05, Validation avg string distance: 0.0171875
+Epoch : 29, Training loss: 4.8468276807135086e-05, Training avg string distance : 0.006306475903614458
+Epoch : 29, Validation loss: 3.966141536390448e-05, Validation avg string distance: 0.022916666666666665
+Epoch : 30, Training loss: 4.3348678007598475e-05, Training avg string distance : 0.005553463855421686
+Epoch : 30, Validation loss: 3.418421391264322e-05, Validation avg string distance: 0.022916666666666665
+Validation loss decreased (0.000034 --> 0.000034). Saving model ...
+Epoch : 31, Training loss: 4.2211836970012204e-05, Training avg string distance : 0.004329819277108434
+Epoch : 31, Validation loss: 3.4678388753187996e-05, Validation avg string distance: 0.017708333333333333
+Epoch : 32, Training loss: 4.015915995964806e-05, Training avg string distance : 0.005082831325301205
+Epoch : 32, Validation loss: 3.2589620726260664e-05, Validation avg string distance: 0.021354166666666667
+Validation loss decreased (0.000034 --> 0.000033). Saving model ...
+Epoch : 33, Training loss: 3.674942108335083e-05, Training avg string distance : 0.0038591867469879517
+Epoch : 33, Validation loss: 2.6937575391154193e-05, Validation avg string distance: 0.009895833333333333
+Validation loss decreased (0.000033 --> 0.000027). Saving model ...
+Epoch : 34, Training loss: 3.509261326812466e-05, Training avg string distance : 0.0031061746987951807
+Epoch : 34, Validation loss: 2.8055388672025098e-05, Validation avg string distance: 0.015104166666666667
+Epoch : 35, Training loss: 3.26801869214908e-05, Training avg string distance : 0.0026355421686746986
+Epoch : 35, Validation loss: 2.957901763996536e-05, Validation avg string distance: 0.016145833333333335
+Epoch : 36, Training loss: 2.9910287210726214e-05, Training avg string distance : 0.003482680722891566
+Epoch : 36, Validation loss: 2.6267221407276035e-05, Validation avg string distance: 0.015104166666666667
+Validation loss decreased (0.000027 --> 0.000026). Saving model ...
+Epoch : 37, Training loss: 2.9102847961384903e-05, Training avg string distance : 0.0015060240963855422
+Epoch : 37, Validation loss: 2.905201578566145e-05, Validation avg string distance: 0.015104166666666667
+Epoch : 38, Training loss: 2.7924054864408653e-05, Training avg string distance : 0.0028237951807228916
+Epoch : 38, Validation loss: 3.164049803672242e-05, Validation avg string distance: 0.014583333333333334
+Epoch : 39, Training loss: 2.766650379863315e-05, Training avg string distance : 0.002164909638554217
+Epoch : 39, Validation loss: 3.084125569330354e-05, Validation avg string distance: 0.014583333333333334
+Epoch : 40, Training loss: 2.5539226044202223e-05, Training avg string distance : 0.0018825301204819277
+Epoch : 40, Validation loss: 3.0260617556147433e-05, Validation avg string distance: 0.016145833333333335
+Epoch : 41, Training loss: 2.4944145589399274e-05, Training avg string distance : 0.0017884036144578312
+Epoch : 41, Validation loss: 3.196214744699925e-05, Validation avg string distance: 0.018229166666666668
+Epoch : 42, Training loss: 2.497830618848233e-05, Training avg string distance : 0.001694277108433735
+Epoch : 42, Validation loss: 2.3994339229223746e-05, Validation avg string distance: 0.009895833333333333
+Validation loss decreased (0.000026 --> 0.000024). Saving model ...
+Epoch : 43, Training loss: 2.219215079948989e-05, Training avg string distance : 0.001694277108433735
+Epoch : 43, Validation loss: 2.3080605433278834e-05, Validation avg string distance: 0.011979166666666667
+Validation loss decreased (0.000024 --> 0.000023). Saving model ...
+Epoch : 44, Training loss: 2.398330459171515e-05, Training avg string distance : 0.001694277108433735
+Epoch : 44, Validation loss: 2.9865065577420562e-05, Validation avg string distance: 0.014583333333333334
+Epoch : 45, Training loss: 2.0768397884108183e-05, Training avg string distance : 0.0015060240963855422
+Epoch : 45, Validation loss: 2.5742853631527395e-05, Validation avg string distance: 0.0125
+Epoch : 46, Training loss: 2.0741935089293303e-05, Training avg string distance : 0.0010353915662650603
+Epoch : 46, Validation loss: 2.151316707568185e-05, Validation avg string distance: 0.009375
+Validation loss decreased (0.000023 --> 0.000022). Saving model ...
+Epoch : 47, Training loss: 1.9251092343909543e-05, Training avg string distance : 0.0015060240963855422
+Epoch : 47, Validation loss: 2.1557452737397397e-05, Validation avg string distance: 0.009375
+Epoch : 48, Training loss: 2.0675063110666745e-05, Training avg string distance : 0.0017884036144578312
+Epoch : 48, Validation loss: 2.8361003933241592e-05, Validation avg string distance: 0.020833333333333332
+Epoch : 49, Training loss: 1.8426393005456594e-05, Training avg string distance : 0.0009412650602409639
+Epoch : 49, Validation loss: 1.9684525492872734e-05, Validation avg string distance: 0.009375
+Validation loss decreased (0.000022 --> 0.000020). Saving model ...
+Time taken for training and testing of phocNet on current set of dream images is : 3700.6659626960754

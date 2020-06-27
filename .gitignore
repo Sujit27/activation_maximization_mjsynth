@@ -29,3 +29,5 @@ out*/
 code/create_dream_dataset/train/
 
 code/create_dream_dataset/test/
+
+code/read_dream_dataset/*.txt

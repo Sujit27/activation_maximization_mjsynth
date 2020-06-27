@@ -17,7 +17,7 @@ from phoc_network.predict_word_from_embd import *
 
 
    
-def train_phocNet_on_dream_dataset(pooling_levels,word_length,training_data_path,output_path,
+def train_phocNet_on_dream_dataset(pooling_levels,training_data_path,output_path,
                                    num_epochs=100,lr=0.0001,batch_size=64,weight_decay=0.000,
                                    device=torch.device('cuda')):
     
@@ -49,51 +49,59 @@ def train_phocNet_on_dream_dataset(pooling_levels,word_length,training_data_path
     validation_loader = DataLoader(train_data_set, batch_size=batch_size,sampler=valid_sampler,num_workers=0)
 
     # create phocNet
-    cnn = PHOCNet(train_data_set[0][1].shape[0],pooling_levels,input_channels=1,gpp_type='tpp')
-    cnn.init_weights()
-    criterion = nn.BCEWithLogitsLoss(size_average=True)
+    net = PHOCNet(train_data_set[0][1].shape[0]+10,pooling_levels,input_channels=1,gpp_type='tpp') # +10 in the embedding size
+    net.init_weights()
+    #criterion = nn.BCEWithLogitsLoss(size_average=True)
+    criterion = nn.BCEWithLogitsLoss()
     
-    cnn.to(device)
+    net.to(device)
     
-    optimizer = torch.optim.Adam(cnn.parameters(), lr,
+    optimizer = torch.optim.Adam(net.parameters(), lr,
                                     weight_decay=weight_decay)
     valid_loss_min = 10000000 # validation loss min set to a high number for saving checkpoints
 
     for epoch in range(num_epochs):
-        cnn.train()
+        net.train()
         training_distance_list = []
         validation_distance_list = []
         training_loss_list = []
         validation_loss_list = []
         for i,data in enumerate(train_loader,0):
             imgs,embeddings,_,words = data
+            
+            word_length_embedding = create_word_length_embedding(words)
+            embeddings = torch.cat((embeddings,word_length_embedding),1)
 
             imgs = imgs.to(device)
             embeddings = embeddings.to(device)
 
             optimizer.zero_grad()
-            outputs = cnn(imgs)
+            outputs = net(imgs)
 
             train_loss = criterion(outputs, embeddings) / batch_size
             train_loss.backward()
             optimizer.step()
 
-            word_distance_array = find_string_distances(outputs.cpu().detach().numpy(),words,pooling_levels,word_length)
+            word_distance_array = find_string_distances(outputs.cpu().detach().numpy()[:,:-10],words,pooling_levels)  # remove last 10 values from the embedding 
             edit_distance_error_avg = float(np.sum(word_distance_array)) / (batch_size)
             training_loss_list.append(train_loss.item())
             training_distance_list.append(edit_distance_error_avg)
 
         
-        cnn.eval()
+        net.eval()
         for i,data in enumerate(validation_loader,0):
             imgs,embeddings,_,words = data
+
+            word_length_embedding = create_word_length_embedding(words)
+            embeddings = torch.cat((embeddings,word_length_embedding),1)
 
             imgs = imgs.to(device)
             embeddings = embeddings.to(device)
 
-            outputs = cnn(imgs)
+            outputs = net(imgs)
             validation_loss = criterion(outputs, embeddings) / batch_size
-            word_distance_array = find_string_distances(outputs.cpu().detach().numpy(),words,pooling_levels,word_length)
+            
+            word_distance_array = find_string_distances(outputs.cpu().detach().numpy()[:,:-10],words,pooling_levels)  # remove last 10 values from the embedding 
             edit_distance_error_avg = float(np.sum(word_distance_array)) / (batch_size)
             validation_loss_list.append(validation_loss.item())
             validation_distance_list.append(edit_distance_error_avg)
@@ -102,7 +110,7 @@ def train_phocNet_on_dream_dataset(pooling_levels,word_length,training_data_path
         print("Epoch : {}, Validation loss: {}, Validation avg string distance: {}".format(epoch,mean(validation_loss_list),mean(validation_distance_list)))
 
         # create checkpoint
-        checkpoint = {'epoch':epoch+1,'validation_loss_min':mean(validation_loss_list),'validation_distance_min':mean(validation_distance_list),'state_dict':cnn.state_dict(),'optimizer':optimizer.state_dict()}
+        checkpoint = {'epoch':epoch+1,'validation_loss_min':mean(validation_loss_list),'validation_distance_min':mean(validation_distance_list),'state_dict':net.state_dict()}
 
         save_ckp(checkpoint,False,checkpoint_path,best_model_path)
 

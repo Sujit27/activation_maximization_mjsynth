@@ -132,7 +132,7 @@ def train_model(output_path,data_root,transform,prev_trained_checkpoint=None,num
         print('Epoch: {} \tTraining Loss: {:.6f} \tValidation Loss: {:.6f} \tTraining Accuracy: {:.3f} \tValidation Accuracy: {:.3f}'.format(epoch,train_loss,valid_loss,train_accuracy,valid_accuracy))
 
         # create checkpoint
-        checkpoint = {'epoch':epoch+1,'valid_accuracy_max':valid_accuracy,'valid_loss_min':valid_loss,'state_dict':net.state_dict(),'optimizer':optimizer.state_dict()}
+        checkpoint = {'epoch':epoch+1,'valid_accuracy_max':valid_accuracy,'valid_loss_min':valid_loss,'state_dict':net.state_dict()}
 
         save_ckp(checkpoint,False,checkpoint_path,best_model_path)
 
