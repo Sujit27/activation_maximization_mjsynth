@@ -1,0 +1,72 @@
+Failed to convert  /var/tmp/on63ilaw/mjsynth/data_subset/train/raw/211_Queened_61779.jpg
+Epoch : 0, Training loss: 0.0014904801709462261, Training avg string distance : 3.996693061149762
+Epoch : 0, Validation loss: 0.00028980872242462973, Validation avg string distance: 2.4935556994818655
+Validation loss decreased (10000000.000000 --> 0.000290). Saving model ...
+Failed to convert  /var/tmp/on63ilaw/mjsynth/data_subset/train/raw/211_Queened_61779.jpg
+Epoch : 1, Training loss: 0.0002642954240643728, Training avg string distance : 2.467697272061516
+Epoch : 1, Validation loss: 0.00014429847251543493, Validation avg string distance: 2.399676165803109
+Validation loss decreased (0.000290 --> 0.000144). Saving model ...
+Failed to convert  /var/tmp/on63ilaw/mjsynth/data_subset/train/raw/211_Queened_61779.jpg
+Epoch : 2, Training loss: 0.0001518614036428594, Training avg string distance : 2.3928391614793116
+Epoch : 2, Validation loss: 0.000109937731544159, Validation avg string distance: 2.3721664507772022
+Validation loss decreased (0.000144 --> 0.000110). Saving model ...
+Failed to convert  /var/tmp/on63ilaw/mjsynth/data_subset/train/raw/211_Queened_61779.jpg
+Epoch : 3, Training loss: 0.00010877887968484879, Training avg string distance : 2.3635115342365434
+Epoch : 3, Validation loss: 9.253137848061226e-05, Validation avg string distance: 2.3633743523316064
+Validation loss decreased (0.000110 --> 0.000093). Saving model ...
+Failed to convert  /var/tmp/on63ilaw/mjsynth/data_subset/train/raw/211_Queened_61779.jpg
+Epoch : 4, Training loss: 8.404351389354302e-05, Training avg string distance : 2.3457324469058953
+Epoch : 4, Validation loss: 8.433928584249204e-05, Validation avg string distance: 2.35642810880829
+Validation loss decreased (0.000093 --> 0.000084). Saving model ...
+Failed to convert  /var/tmp/on63ilaw/mjsynth/data_subset/train/raw/211_Queened_61779.jpg
+Epoch : 5, Training loss: 6.761240429973176e-05, Training avg string distance : 2.3331426217502744
+Epoch : 5, Validation loss: 7.867606630605699e-05, Validation avg string distance: 2.350291450777202
+Validation loss decreased (0.000084 --> 0.000079). Saving model ...
+Failed to convert  /var/tmp/on63ilaw/mjsynth/data_subset/train/raw/211_Queened_61779.jpg
+Epoch : 6, Training loss: 5.6387009910307886e-05, Training avg string distance : 2.323874038813621
+Epoch : 6, Validation loss: 7.323771834211386e-05, Validation avg string distance: 2.3451748704663213
+Validation loss decreased (0.000079 --> 0.000073). Saving model ...
+Failed to convert  /var/tmp/on63ilaw/mjsynth/data_subset/train/raw/211_Queened_61779.jpg
+Epoch : 7, Training loss: 4.76732598713378e-05, Training avg string distance : 2.317368866715489
+Epoch : 7, Validation loss: 7.310065857205427e-05, Validation avg string distance: 2.3442033678756475
+Validation loss decreased (0.000073 --> 0.000073). Saving model ...
+Failed to convert  /var/tmp/on63ilaw/mjsynth/data_subset/train/raw/211_Queened_61779.jpg
+Epoch : 8, Training loss: 4.1061348506384327e-05, Training avg string distance : 2.3114558540827534
+Epoch : 8, Validation loss: 7.323150733369057e-05, Validation avg string distance: 2.3433937823834197
+Failed to convert  /var/tmp/on63ilaw/mjsynth/data_subset/train/raw/211_Queened_61779.jpg
+Epoch : 9, Training loss: 3.612787610490895e-05, Training avg string distance : 2.307347926583669
+Epoch : 9, Validation loss: 7.182269605554696e-05, Validation avg string distance: 2.3417908031088084
+Validation loss decreased (0.000073 --> 0.000072). Saving model ...
+Failed to convert  /var/tmp/on63ilaw/mjsynth/data_subset/train/raw/211_Queened_61779.jpg
+Epoch : 10, Training loss: 3.219407755591311e-05, Training avg string distance : 2.3039380034785792
+Epoch : 10, Validation loss: 7.23221400468851e-05, Validation avg string distance: 2.3423737046632125
+Failed to convert  /var/tmp/on63ilaw/mjsynth/data_subset/train/raw/211_Queened_61779.jpg
+Epoch : 11, Training loss: 2.858162679847335e-05, Training avg string distance : 2.3012718555474185
+Epoch : 11, Validation loss: 7.057840247213082e-05, Validation avg string distance: 2.3402363989637305
+Validation loss decreased (0.000072 --> 0.000071). Saving model ...
+Failed to convert  /var/tmp/on63ilaw/mjsynth/data_subset/train/raw/211_Queened_61779.jpg
+Epoch : 12, Training loss: 2.5861689438431812e-05, Training avg string distance : 2.298471255950201
+Epoch : 12, Validation loss: 6.961222395147223e-05, Validation avg string distance: 2.338681994818653
+Validation loss decreased (0.000071 --> 0.000070). Saving model ...
+Failed to convert  /var/tmp/on63ilaw/mjsynth/data_subset/train/raw/211_Queened_61779.jpg
+Epoch : 13, Training loss: 2.4170126914369077e-05, Training avg string distance : 2.296797761808861
+Epoch : 13, Validation loss: 7.167253837590724e-05, Validation avg string distance: 2.340738341968912
+Failed to convert  /var/tmp/on63ilaw/mjsynth/data_subset/train/raw/211_Queened_61779.jpg
+Epoch : 14, Training loss: 2.1331858309707063e-05, Training avg string distance : 2.294863946356646
+Epoch : 14, Validation loss: 7.235407231791859e-05, Validation avg string distance: 2.340997409326425
+Failed to convert  /var/tmp/on63ilaw/mjsynth/data_subset/train/raw/211_Queened_61779.jpg
+Epoch : 15, Training loss: 2.006041304203091e-05, Training avg string distance : 2.293310600512633
+Epoch : 15, Validation loss: 7.26962828791221e-05, Validation avg string distance: 2.3386981865284975
+Failed to convert  /var/tmp/on63ilaw/mjsynth/data_subset/train/raw/211_Queened_61779.jpg
+Epoch : 16, Training loss: 1.8567791743415967e-05, Training avg string distance : 2.2922178231417063
+Epoch : 16, Validation loss: 7.288335119142453e-05, Validation avg string distance: 2.337904792746114
+Failed to convert  /var/tmp/on63ilaw/mjsynth/data_subset/train/raw/211_Queened_61779.jpg
+Epoch : 17, Training loss: 1.7009617614634063e-05, Training avg string distance : 2.2908761671548885
+Epoch : 17, Validation loss: 7.339524268491475e-05, Validation avg string distance: 2.337937176165803
+Failed to convert  /var/tmp/on63ilaw/mjsynth/data_subset/train/raw/211_Queened_61779.jpg
+Epoch : 18, Training loss: 1.632146848269459e-05, Training avg string distance : 2.2902210728670815
+Epoch : 18, Validation loss: 7.14803108775893e-05, Validation avg string distance: 2.338196243523316
+Failed to convert  /var/tmp/on63ilaw/mjsynth/data_subset/train/raw/211_Queened_61779.jpg
+Epoch : 19, Training loss: 1.4977686363541588e-05, Training avg string distance : 2.2890539179787623
+Epoch : 19, Validation loss: 7.395790181992757e-05, Validation avg string distance: 2.3386496113989637
+Time taken for training and testing of phocNet on current set of dream images is : 36038.45794558525

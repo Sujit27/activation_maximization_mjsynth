@@ -48,11 +48,14 @@ def main():
     
     edit_distance_list = [distance for word_dist_array in edit_distance_list for distance in word_dist_array]
 
+    # plot distribution of edit distances from gorund truth
+    hist_freq = plt.hist(edit_distance_list,bins=range(11))
     plt.figure(num=None,figsize=(8,6),dpi=80,facecolor='w',edgecolor='k')
-    plt.hist(edit_distance_list)
-    plt.title("Edit Distance Error Distribution on Test Set\n {}".format(args.histogram_title))
-    plt.xlabel("Error per word")
-    plt.ylabel("Frequency")
+    plt.bar(hist_freq[1][:-1], hist_freq[0]/sum(hist_freq[0])*100)
+    plt.title("Edit Distance Distribution on Test Set\n {}".format(args.histogram_title))
+    plt.xlim(0,10)
+    plt.xlabel("edit distance from ground truth")
+    plt.ylabel("Frequency (percent)")
     plt.savefig("{}.png".format(args.histogram_title))
 
     #print(hist_array)

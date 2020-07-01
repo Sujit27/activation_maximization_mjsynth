@@ -29,6 +29,7 @@ def train_model(output_path,data_root,transform,prev_trained_checkpoint=None,num
 
     # create dictnet dataset object
     dataset = DictNetDataset(data_root,num_labels)
+    num_labels = len(dataset.label_dict)
 
     # save the label names for the dataset as a dictionary
     save_label_dict(dataset,output_path)

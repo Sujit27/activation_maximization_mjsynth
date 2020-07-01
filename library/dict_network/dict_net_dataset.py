@@ -2,6 +2,9 @@ import sys
 
 import os
 import shutil
+import random
+
+from sortedcontainers import SortedSet
 
 import dagtasets as dg
 
@@ -21,12 +24,14 @@ def create_data_subset(root_dir,num_labels):
         all_filenames = [line.rstrip() for line in f]
     words = [((filename.split("_"))[1]).lower() for filename in all_filenames]
 
-    word_list = list(set(words))
+    word_list = list(SortedSet(words))
+    random.seed(42)
     if len(word_list) < num_labels:
         print("Number of labels requested is greater than number of unique words present at root. Data subset not possible")
         return
     else:
-        word_list = word_list[:num_labels]
+        #word_list = word_list[:num_labels]
+        word_list = random.sample(word_list,num_labels)
 
         
     selected_filenames = [filename for filename in all_filenames if (filename.split("_"))[1].lower() in word_list]

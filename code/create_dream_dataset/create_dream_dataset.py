@@ -7,19 +7,23 @@ import os
 import glob
 from pathlib import Path
 import shutil
-from sklearn.model_selection import train_test_split
+import json
+#from sklearn.model_selection import train_test_split
 
 import torchvision
 from dict_network.dict_net import *
 from create_dream import *
-from helper_functions import *
+#from helper_functions import *
 
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-parser.add_argument('-n',type=int,default = 512, dest='num_samples',help='Number of dream samples to be generated')
+parser.add_argument('-n',type=int,default = None, dest='num_labels',help='Number of labels in the trained dictnet')
 parser.add_argument('-b',type=int,default = 512, dest='batch_size',help='batch size for dreaming')
-parser.add_argument('-r',type=float,default = 0.3, dest='test_ratio',help='ratio of test data size to be created when train test is split')
+parser.add_argument('-r',type=float,default = 0.1, dest='test_ratio',help='ratio of test data size to be created when train test is split')
+parser.add_argument('-s1',type=int,default = 5, dest='num_samples_per_label_training',help='number of samples per label to be generated for training dataset')
+parser.add_argument('-s2',type=int,default = 1, dest='num_samples_per_label_test',help='number of samples per label to be generated for test dataset')
 parser.add_argument('-m',type=str,default = None, dest='model_name',required=True, help='Trained model for dreaming')
+parser.add_argument('-d',type=str,default = None, dest='dict_file',required=True, help='json file with label number to word mapping for the trained dictnet')
 parser.add_argument('-o',type=str,default = "out", dest='output_path',help='dream output location')
 
 
@@ -39,48 +43,7 @@ def create_annotation_txt(files_path):
         for item in file_list:
             f.write("%s\n" % os.path.basename(item))
             
-def split_dream_dataset(data_path,test_ratio):
-    '''Given location which contains dream images in the format #_word_#.jpg and a ratio, the function
-    finds the number of unique word labels and splits them into training labels and test labels. It then
-    splits all the dream image file names present in the directory into training_files and test_files, creates 
-    train and test directories and copies the corresponding images to each directory
-    '''
-    file_list = glob.glob(os.path.join(data_path,"*.jpg"))
-    labels = [os.path.basename(file).split("_")[1] for file in file_list]
-    unique_labels = list(set(labels))
-    label_train ,label_test = train_test_split(unique_labels,test_size=test_ratio)
-    
-    train_file_list = []
-    test_file_list = []
-    
-    for file in file_list:
-        for label in label_train:
-            if label in file:
-                train_file_list.append(file)
-                
-    for file in file_list:
-        for label in label_test:
-            if label in file:
-                test_file_list.append(file)
-    
-    dir_train = 'train'
-    if os.path.exists(dir_train):
-        shutil.rmtree(dir_train)
-    os.makedirs(dir_train)
-    
-    dir_test = 'test'
-    if os.path.exists(dir_test):
-        shutil.rmtree(dir_test)
-    os.makedirs(dir_test)
-    
-    for full_file_name in train_file_list:
-        shutil.copy(full_file_name,dir_train)
-        
-    for full_file_name in test_file_list:
-        shutil.copy(full_file_name,dir_test)
-        
-    return label_train ,label_test
-    
+   
 def make_dataset_ready_for_PhocNet(data_path):
     '''creates annotation txt file from the name of all image files in the data path provided and 
     creates a new sub directory 'raw' and moves data into it (this is required for phocNet training)
@@ -92,48 +55,83 @@ def make_dataset_ready_for_PhocNet(data_path):
     for f in files:
         shutil.move(os.path.join(data_path,f),raw_path)
 
-def save_images(tensor,labels,output_path,prev_serial_num,random_seed):
+def save_images(tensor,labels,label_dict,output_path,random_seed):
     '''saves a batch of images (BxCxHxW) as B individual image files in the output_path'''
-    words = label_to_word(labels)
+    words = [label_dict[str(label)] for label in labels]
     for j in range(tensor.shape[0]):
         img = tensor[j]
-        file_name = str(prev_serial_num + j) + "_" + words[j] + "_" + str(random_seed) + ".jpg"
+        file_name = str(labels[j]) + "_" + words[j] + "_" + str(random_seed) + ".jpg"
         torchvision.utils.save_image(img,os.path.join(output_path,file_name))
 
 
 def main():
-    num_samples = cmd_args.num_samples
+    num_labels = cmd_args.num_labels
     batch_size = cmd_args.batch_size
     model_name = cmd_args.model_name
+    dict_file = cmd_args.dict_file
     output_path = cmd_args.output_path
     test_ratio = cmd_args.test_ratio
-
-    model_basename = os.path.basename(model_name)
-    num_labels = int(model_basename.split('_')[1])
-
-    #Path(output_path).mkdir(parents=True,exist_ok=True)
+    num_samples_per_label_training = cmd_args.num_samples_per_label_training
+    num_samples_per_label_test = cmd_args.num_samples_per_label_test
+    
+    # create paths for output dataset
     if os.path.exists(output_path):
         shutil.rmtree(output_path)
     os.makedirs(output_path)
 
+    output_path_train = os.path.join(output_path,'train')
+    os.makedirs(output_path_train)
+    output_path_test = os.path.join(output_path,'test')
+    os.makedirs(output_path_test)
+
+    # load the network
     net = DictNet(num_labels)
-    net.load_state_dict(torch.load(model_name))
+    net.load_state_dict(torch.load(model_name)['state_dict'])
+
+    # separate training and test labels
+    train_dataset_labels = np.random.choice(num_labels,size=int((1-test_ratio)*num_labels),replace=False)
+    test_dataset_labels = list(set(range(num_labels))-set(train_dataset_labels))
+
+    print("Number of labels for training: ", len(train_dataset_labels))
+    print("Number of labels for testing: ", len(test_dataset_labels))
+
+    with open(dict_file) as json_file:
+        label_dict = json.load(json_file)
 
     start = time.time()
+    
+    # create training dream dataset
+    for i in range(num_samples_per_label_training):
+        chunk_size = min(batch_size,len(train_dataset_labels))
+        train_dataset_labels_chunked = [train_dataset_labels[i:i + chunk_size] for i in range(0, len(train_dataset_labels), chunk_size)] # create batch size chunks of dataset labels
 
-    for i in range(num_samples // batch_size):
-        random_seed = np.random.randint(99999999)
-        labels = np.random.randint(num_labels,size=batch_size)
-        output = dream(net,labels,(32,128,1),(0.47,),(0.14,),random_seed=random_seed)
+        for labels in train_dataset_labels_chunked:
+            random_seed = np.random.randint(99999999)
+            output = dream(net,labels,(32,128,1),(0.47,),(0.14,),random_seed=random_seed)
+            save_images(output,labels,label_dict,output_path_train,random_seed)
 
-        save_images(output,labels,output_path,i*batch_size,random_seed)
+
+        print("{} Train dream images per label generated".format(i+1)) 
+
+    # create test dream dataset
+    for i in range(num_samples_per_label_test):
+        chunk_size = min(batch_size,len(test_dataset_labels))
+        test_dataset_labels_chunked = [test_dataset_labels[i:i + chunk_size] for i in range(0, len(test_dataset_labels), chunk_size)] # create batch size chunks of dataset labels
+
+        for labels in test_dataset_labels_chunked:
+            random_seed = np.random.randint(99999999)
+            output = dream(net,labels,(32,128,1),(0.47,),(0.14,),random_seed=random_seed)
+            save_images(output,labels,label_dict,output_path_test,random_seed)
+
+
+        print("{} Test dream images per label generated".format(i+1)) 
+
 
         end = time.time()
-    print("Time taken for dreaming and saving {} images : {} seconds".format((i+1)*batch_size,end-start))
-
-    label_train ,label_test = split_dream_dataset(output_path,test_ratio)
-    make_dataset_ready_for_PhocNet('train')
-    make_dataset_ready_for_PhocNet('test')
+    print("Time taken for dreaming and saving images : {} seconds".format((end-start)))
+#
+    make_dataset_ready_for_PhocNet(output_path_train)
+    make_dataset_ready_for_PhocNet(output_path_test)
     
 if __name__ == "__main__":
     main()
