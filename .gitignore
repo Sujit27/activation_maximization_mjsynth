@@ -8,6 +8,11 @@
 
 *.pth
 
+*.txt
+
+*.png
+
+*.sh
 __pycache__/
 
 sample_dreams_dataset_6000/

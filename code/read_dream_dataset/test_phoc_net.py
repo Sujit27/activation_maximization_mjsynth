@@ -42,7 +42,7 @@ def main():
         imgs = imgs.to(torch.device('cuda'))
         embeddings = embeddings.to(torch.device('cuda'))
 
-        outputs = phoc_net(imgs)
+        outputs = torch.sigmoid(phoc_net(imgs))
         word_dist_array = find_string_distances(outputs.cpu().detach().numpy()[:,:-10],words,phoc_pooling_levels)
         edit_distance_list.append(word_dist_array)
     
@@ -54,6 +54,7 @@ def main():
     plt.bar(hist_freq[1][:-1], hist_freq[0]/sum(hist_freq[0])*100)
     plt.title("Edit Distance Distribution on Test Set\n {}".format(args.histogram_title))
     plt.xlim(0,10)
+    plt.ylim(0,100)
     plt.xlabel("edit distance from ground truth")
     plt.ylabel("Frequency (percent)")
     plt.savefig("{}.png".format(args.histogram_title))

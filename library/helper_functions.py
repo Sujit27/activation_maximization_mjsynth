@@ -1,10 +1,13 @@
 #from dict_net import *
 import torch
 import torch.utils.data
+import torchvision
 import numpy as np
 import os
 import shutil
 import re
+import glob
+from pathlib import Path
 import dagtasets as dg
 import sklearn.metrics as skm
 import csv
@@ -191,3 +194,39 @@ def save_ckp(state, is_best, checkpoint_path, best_model_path):
         best_fpath = best_model_path
         # copy that checkpoint file to best path given, best_model_path
         shutil.copyfile(f_path, best_fpath)
+
+def create_annotation_txt(files_path):
+    '''
+    creates a txt file listing the names of all the jpg files
+    in the given directory
+    '''
+    file_list = glob.glob(os.path.join(files_path,"*.jpg"))
+    output_file_name = os.path.join(files_path,"annotation_train.txt")
+
+    print("Creating annotation txt file")
+
+    with open(output_file_name,'w') as f:
+        for item in file_list:
+            f.write("%s\n" % os.path.basename(item))
+            
+   
+def make_dataset_ready_for_PhocNet(data_path):
+    '''creates annotation txt file from the name of all image files in the data path provided and 
+    creates a new sub directory 'raw' and moves data into it (this is required for phocNet training)
+    '''
+    create_annotation_txt(data_path)
+    raw_path = os.path.join(data_path,'raw')
+    Path(raw_path).mkdir(parents=True,exist_ok=True)
+    files = os.listdir(data_path)
+    for f in files:
+        shutil.move(os.path.join(data_path,f),raw_path)
+
+def save_images(tensor,labels,label_dict,output_path,random_seed):
+    '''saves a batch of images (BxCxHxW) as B individual image files in the output_path'''
+    words = [label_dict[str(label)] for label in labels]
+    for j in range(tensor.shape[0]):
+        img = tensor[j]
+        file_name = str(labels[j]) + "_" + words[j] + "_" + str(random_seed) + ".jpg"
+        torchvision.utils.save_image(img,os.path.join(output_path,file_name))
+
+

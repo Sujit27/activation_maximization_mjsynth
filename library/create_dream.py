@@ -16,7 +16,7 @@ from PIL import Image, ImageFilter, ImageChops
 from torch.nn import functional as F
 
 from dict_network.dict_net import *
-from deep_dream_mnist.network_mnist import *
+#from deep_dream_mnist.network_mnist import *
 
 def create_random_image(image_dim,img_is2D,random_seed=0):
     '''Creates a random image of of shape given by image_dim which should be a tuple of length 3 HxWxC '''
@@ -55,7 +55,7 @@ def postprocess_batch(image_tensor,mean,std,img_is2D,device):
 
     return image_tensor
     
-def dream(network,labels,image_dim,mean,std,nItr=100,lr=0.1,random_seed=0,kernel_size=3,sigma=0.5):
+def dream(network,labels,image_dim,mean,std,nItr=100,lr=0.1,random_seed=0,kernel_size=3,sigma=0.5,loss_type='logit'):
     '''Given a trained convolutional network and a list of desired label numbers,
     function returns a batch of images (BxCxHxW) that has been optimized to output high confidence
     for that the specified labels when forward passed through the network
@@ -70,11 +70,11 @@ def dream(network,labels,image_dim,mean,std,nItr=100,lr=0.1,random_seed=0,kernel
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     network,gaussian_filter = move_network_to_device(network,gaussian_filter,device)
     
-    image_tensor = dream_kernel(network,gaussian_filter,image_dim,labels,mean,std,nItr,lr,random_seed,device)
+    image_tensor = dream_kernel(network,gaussian_filter,image_dim,labels,mean,std,nItr,lr,random_seed,device,loss_type)
 
     return image_tensor
 
-def dream_kernel(network,gaussian_filter,image_dim,labels,mean,std,nItr,lr,random_seed,device):
+def dream_kernel(network,gaussian_filter,image_dim,labels,mean,std,nItr,lr,random_seed,device,loss_type):
     '''Creates a batch of random images and optimizes it to output high confidence for the specified labels'''
     img_is2D = check_if2D(image_dim)
     for i in range(len(labels)):
@@ -95,8 +95,17 @@ def dream_kernel(network,gaussian_filter,image_dim,labels,mean,std,nItr,lr,rando
         #print("Time for forward pass ",end-start)
         
         loss = 0
-        for index,label in enumerate(labels):
-            loss += out[index,label]
+        if loss_type == "logit":
+            for index,label in enumerate(labels):
+                loss += out[index,label]
+        
+        if loss_type == "softmax":
+            for index,label in enumerate(labels):
+                loss += F.softmax(out,dim=1)[index,label]
+
+        if loss_type == "log_softmax":
+            for index,label in enumerate(labels):
+                loss += torch.log(F.softmax(out,dim=1)[index,label])
 
         #start = time.time()
         loss.backward()
@@ -193,21 +202,21 @@ class GaussianFilter:
 def main():
     # create deep dream images with DictNet
     network = DictNet(1000)
-    network.load_state_dict(torch.load("../code/train_dict_network/out3/net_1000_0.001_200_0.0.pth"))
-    output_batch = dream(network,[0,1,2,3],(32,128,1),(0.47,),(0.14,))
+    network.load_state_dict(torch.load("../code/train_dict_network/out_3_1000/model_best.pth.tar")['state_dict'])
+    output_batch = dream(network,[80,366],(32,128,1),(0.47,),(0.14,))
     #display_grid(output_batch)
     save_image(output_batch,"dreams_mjsynth.png")
     
     # create deep dream images with MNIST
     network = Net()
     network.load_state_dict(torch.load('../deep_dream_mnist/mnist.pth'))
-    output_batch = dream(network,[0,4,2,8],(28,28,1),(0.13,),(0.31,))
+    output_batch = dream(network,[3,4],(28,28,1),(0.13,),(0.31,))
     #display_grid(output_batch)
     save_image(output_batch,"dreams_MNIST.png")
     
     # create deep dream images with ImageNet
     network = models.vgg19(pretrained=True)
-    output_batch = dream(network,[79,130,736,883],(224,224,3),(0.485, 0.456, 0.406),(0.229, 0.224, 0.225),nItr=400)
+    output_batch = dream(network,[79,736],(224,224,3),(0.485, 0.456, 0.406),(0.229, 0.224, 0.225),nItr=400)
     #display_grid(output_batch)
     save_image(output_batch,"dreams_ImageNet.png")
     
