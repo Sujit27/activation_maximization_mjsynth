@@ -21,8 +21,10 @@ parser.add_argument('-m',type=str,default = None, dest='prev_trained_checkpoint'
 parser.add_argument('-o',type=str,default = "out", dest='output_path',help='Output model location')
 parser.add_argument('-d',type=str,default = None, dest='data_root',help='input data location')
 parser.add_argument('-lr',type=float,default = 0.001, dest='lr',help='Learning rate')
-#parser.add_argument('-bs',type=int,default = 64, dest='batch_size',help='batch size for training')
-parser.add_argument('-ne',type=int,default = 30, dest='num_epochs',help='Number of epochs to train')
+parser.add_argument('-bs',type=int,default = 64, dest='batch_size',help='batch size for training')
+parser.add_argument('-ne',type=int,default = 10, dest='num_epochs',help='Number of epochs to train')
+parser.add_argument('-cc',type=int,default = 16, dest='conv_capacity',help='Capacity parameter of convolution layers')
+parser.add_argument('-fc',type=int,default = 128, dest='full_capacity',help='Capacity parameter of fully connected layers')
 
 
 cmd_args = parser.parse_args()
@@ -40,23 +42,26 @@ def main():
     data_root = cmd_args.data_root
     lr = cmd_args.lr
     num_epochs = cmd_args.num_epochs
+    conv_capacity = cmd_args.conv_capacity
+    full_capacity = cmd_args.full_capacity
+    batch_size = cmd_args.batch_size
 
     os.nice(20)
 
     weight_decay = 0.00
     transform = dg.mjsynth.mjsynth_gray_scale
     
-    if num_labels  is not None:
-        batch_size = int(num_labels/5) 
-        batch_size = min(batch_size,256)
-    else:
-        batch_size = 256
-
+#    if num_labels  is not None:
+#        batch_size = int(num_labels/5) 
+#        batch_size = min(batch_size,256)
+#    else:
+#        batch_size = 256
+#
     # create output directory for saving model if does not exist already
     Path(output_path).mkdir(parents=True,exist_ok=True)
 
     # train
-    train_model(output_path,data_root,transform,prev_trained_checkpoint=prev_trained_checkpoint,num_labels=num_labels,lr = lr,batch_size=batch_size,weight_decay=weight_decay,num_epochs=num_epochs)
+    train_model(output_path,data_root,transform,conv_capacity,full_capacity,prev_trained_checkpoint=prev_trained_checkpoint,num_labels=num_labels,lr=lr,batch_size=batch_size,weight_decay=weight_decay,num_epochs=num_epochs)
 
 
 

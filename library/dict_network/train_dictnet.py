@@ -15,7 +15,7 @@ from pathlib import Path
 
 
 
-def train_model(output_path,data_root,transform,prev_trained_checkpoint=None,num_labels=None,lr=0.005,batch_size=16,weight_decay=0.001,num_epochs=1):
+def train_model(output_path,data_root,transform,conv_capacity,full_capacity,prev_trained_checkpoint=None,num_labels=None,lr=0.005,batch_size=16,weight_decay=0.001,num_epochs=1):
     '''
     Given data location, creates a dictnet network, trains the model on the data and saves the model with dictionary of labels
     '''
@@ -35,7 +35,7 @@ def train_model(output_path,data_root,transform,prev_trained_checkpoint=None,num
     save_label_dict(dataset,output_path)
 
     # create network with number of output nodes same as number of distinct labels
-    net = DictNet(num_labels)
+    net = DictNet(num_labels,conv_capacity,full_capacity)
     valid_loss_min = 1000000 #validation loss initialized with a high number, to start saving best model by comparing 
 
     # If provided, load model from a previous trained checkpoint

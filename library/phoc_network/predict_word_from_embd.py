@@ -47,6 +47,10 @@ def create_word_length_embedding(words):
     embd_mat = np.zeros((len(words),10))
     for index,word in enumerate(words):
         word_length = len(word)
+        # limit to max length 10
+        #if word_length > 10:
+        #    word_length = 10
+
         embd_mat[index,word_length-1] = 1.0
 
     return torch.tensor(embd_mat).float()

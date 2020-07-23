@@ -14,7 +14,7 @@ parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFo
 
 parser.add_argument('-d',type=str,default=None,dest='test_data_path',required=True,help='Loaction of test dream dataset. Location should have a dir called test in it')
 parser.add_argument('-m',type=str,default=None,dest='trained_phoc_net_model',required=True,help='Loaction of trained phoc net model : .pth.tar file')
-parser.add_argument('-hsg',type=str,default='Histogram',dest='histogram_title',help='Title of histogram plot generated showing distribution of edit distance error on test set')
+parser.add_argument('-f',type=str,default='Histogram',dest='file_name',help='Title of histogram plot generated showing distribution of edit distance error on test set')
 
 args = parser.parse_args()
 
@@ -51,13 +51,15 @@ def main():
     # plot distribution of edit distances from gorund truth
     hist_freq = plt.hist(edit_distance_list,bins=range(11))
     plt.figure(num=None,figsize=(8,6),dpi=80,facecolor='w',edgecolor='k')
+    plt.rcParams.update({'font.size':17})
     plt.bar(hist_freq[1][:-1], hist_freq[0]/sum(hist_freq[0])*100)
-    plt.title("Edit Distance Distribution on Test Set\n {}".format(args.histogram_title))
-    plt.xlim(0,10)
+    plt.title("Edit Distance Distribution on Test Set")
+    plt.xlim(-1,7)
+    plt.xticks([0,1,2,3,4,5,6])
     plt.ylim(0,100)
     plt.xlabel("edit distance from ground truth")
     plt.ylabel("Frequency (percent)")
-    plt.savefig("{}.png".format(args.histogram_title))
+    plt.savefig("{}.png".format(args.file_name))
 
     #print(hist_array)
 

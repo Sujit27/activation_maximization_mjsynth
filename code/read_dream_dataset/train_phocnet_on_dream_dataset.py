@@ -11,7 +11,7 @@ parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFo
 parser.add_argument('-d',type=str,default = None, dest='data_path',required=True,help='Location of training data. Should have directories called train') 
 parser.add_argument('-o',type=str,default = 'out', dest='output_path',help='Location where the phocnet will be saved') 
 parser.add_argument('-bs',type=int,default = 64, dest='batch_size',help='batch size for training phocnet')
-parser.add_argument('-ne',type=int,default = 100, dest='num_epochs',help='number of epochs for training phocnet')
+parser.add_argument('-ne',type=int,default = 20, dest='num_epochs',help='number of epochs for training phocnet')
 parser.add_argument('-lr',type=float,default = 0.0001, dest='learning_rate',help='learning rate for training phocnet')
 
 args = parser.parse_args()
